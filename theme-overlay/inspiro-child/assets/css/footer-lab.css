@@ -68,16 +68,21 @@
 
 .footer-lab-controls {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	gap: 16px;
-	align-items: center;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0;
+	align-items: stretch;
 	padding: 18px;
 	border: 1px solid rgba(11, 23, 35, 0.1);
 	border-radius: 24px;
 	background: linear-gradient(180deg, rgba(250, 251, 252, 0.98), rgba(242, 246, 248, 0.98));
 }
 
-.footer-lab-selector,
+.footer-lab-selector {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 10px;
+}
+
 .footer-lab-journey-actions,
 .footer-lab-scrubber__stops,
 .footer-lab-socials {
@@ -99,6 +104,13 @@
 	transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
+.footer-lab-selector button {
+	width: 100%;
+	min-height: 44px;
+	padding: 11px 10px;
+	white-space: nowrap;
+}
+
 .footer-lab-selector button[aria-pressed="true"],
 .footer-lab-journey-actions button[aria-pressed="true"] {
 	background: #10212f;
@@ -106,16 +118,13 @@
 	color: #fff;
 }
 
-.footer-lab-selector button:hover,
 .footer-lab-journey-actions button:hover,
 .footer-lab-scrubber__stops button:hover {
 	transform: translateY(-1px);
 }
 
-.footer-lab-status {
-	font-size: 0.94rem;
-	color: #566773;
-	text-align: right;
+.footer-lab-selector button:hover {
+	transform: none;
 }
 
 .footer-lab-viewer {
@@ -180,6 +189,7 @@
 .footer-lab-current-footer .footer-menu a:hover,
 .footer-lab-current-footer .footer-menu a:focus-visible {
 	color: rgba(255, 255, 255, 0.8);
+	text-decoration: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -923,6 +933,10 @@
 }
 
 @media screen and (max-width: 800px) {
+	.footer-lab-selector {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
 	.footer-lab-preview__grid,
 	.footer-lab-fluorescent__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -932,10 +946,6 @@
 	.footer-lab-fluorescent__base,
 	.footer-lab-fluorescent__caption {
 		flex-direction: column;
-	}
-
-	.footer-lab-status {
-		text-align: left;
 	}
 
 	.footer-lab-mesh-columns {
@@ -972,6 +982,10 @@
 	.footer-lab-scrubber__stops button {
 		width: 100%;
 		justify-content: center;
+	}
+
+	.footer-lab-selector {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.footer-lab-current-footer {

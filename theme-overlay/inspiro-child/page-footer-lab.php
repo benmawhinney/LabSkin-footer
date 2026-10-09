@@ -230,7 +230,6 @@ $logo_markup = $render_logo();
 					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="fluorescent">Fluorescent concept</button>
 					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
 				</div>
-				<div class="footer-lab-status" id="footer-lab-status">Showing the live child-theme footer.</div>
 			</section>
 
 			<section class="footer-lab-viewer" aria-live="polite">

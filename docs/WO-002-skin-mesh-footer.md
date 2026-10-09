@@ -60,6 +60,7 @@ Out of scope:
 
 - Added a separate Mesh concept tab and panel to Footer Lab, based on the live child-theme footer and its existing WordPress links; the Current variant remains unchanged.
 - Footer selector order is Current, LabSkin-Dev, Evidence, Fluorescent, Mesh; the existing variant keys and panel mappings are unchanged.
+- Selector description text has been removed. Tabs use equal-width, fixed-height grid cells and do not move when selected.
 - Current and Evidence menu links use the plain white underline on hover and keyboard focus without changing their resting text colors. The LabSkin-Dev underline remains unchanged.
 - Placed the Mesh label and Insert/Ribbon selector inside the footer as an overlay toolbar; the WebGL mesh remains a positioned canvas layer, not a separate footer component.
 - The Mesh intro block is commented out for future testimonial/client-logo content.
