@@ -368,7 +368,7 @@ export function mount(root) {
     destroyed: false,
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     yaw: 0,
-    pitch: -0.32,
+    pitch: -1.18,
     velocityYaw: 0,
     velocityPitch: 0,
     lastInputAt: performance.now(),
@@ -573,7 +573,7 @@ export function mount(root) {
       const horizontalSpeed = Math.abs(deltaX) / deltaTime;
       const dragScale = 0.004;
       state.yaw += deltaX * dragScale;
-      state.pitch = Math.max(-0.72, Math.min(0.28, state.pitch + deltaY * dragScale));
+      state.pitch = Math.max(-1.35, Math.min(0.28, state.pitch + deltaY * dragScale));
       state.velocityYaw = deltaX * dragScale / deltaTime;
       state.velocityPitch = deltaY * dragScale / deltaTime;
 
@@ -697,7 +697,7 @@ export function mount(root) {
         state.velocityYaw *= Math.pow(0.94, deltaTime * 60);
         state.velocityPitch *= Math.pow(0.94, deltaTime * 60);
         if (idleFor > 2500) {
-          state.pitch += (-0.32 - state.pitch) * Math.min(1, deltaTime * 0.9);
+          state.pitch += (-1.18 - state.pitch) * Math.min(1, deltaTime * 0.9);
         }
       }
     } else {
