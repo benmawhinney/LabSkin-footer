@@ -79,6 +79,7 @@ uniform vec4 uPokes[8];
 uniform float uPokeRelease[8];
 uniform vec3 uHover;
 uniform vec4 uBreaks[4];
+uniform vec4 uDamages[8];
 uniform vec3 uTeal400;
 uniform vec3 uTeal200;
 uniform vec3 uWhite;
@@ -190,17 +191,68 @@ void main() {
 
   float hoverLight = exp(-dot(hoverDelta, hoverDelta) * 0.012) * uHover.z;
 
+  float inflammation = 0.0;
+  float inflammationParticles = 0.0;
+  float repairWhite = 0.0;
+  for (int damageIndex = 0; damageIndex < 8; damageIndex++) {
+    if (uDamages[damageIndex].w <= 0.0) {
+      continue;
+    }
+
+    float age = max(0.0, uTime - uDamages[damageIndex].z);
+    vec2 damageCenter = uDamages[damageIndex].xy * uGridCount;
+    vec2 damageDelta = (grid - damageCenter) / pixelWidth;
+    float damageDistance = length(damageDelta);
+    float localGlow = exp(-dot(damageDelta, damageDelta) * 0.008);
+    float flareIn = smoothstep(0.0, 0.12, age);
+    float flareOut = 1.0 - smoothstep(0.72, 1.2, age);
+    inflammation = max(inflammation, localGlow * flareIn * flareOut * uDamages[damageIndex].w);
+
+    float particleIn = smoothstep(0.04, 0.16, age);
+    float particleOut = 1.0 - smoothstep(0.74, 0.9, age);
+    float particleMotion = uReducedMotion > 0.5 ? 0.0 : particleIn * particleOut;
+    for (int particleIndex = 0; particleIndex < 8; particleIndex++) {
+      float seed = hashValue(float(particleIndex) + uDamages[damageIndex].x * 41.0 + uDamages[damageIndex].y * 23.0);
+      float angle = float(particleIndex) * 2.399963 + seed * 6.283185;
+      vec2 heading = vec2(cos(angle), sin(angle));
+      float travel = smoothstep(0.08, 0.72, age) * (2.5 + seed * 3.0);
+      vec2 particlePosition = damageCenter + heading * travel;
+      float particleDistance = length((grid - particlePosition) / pixelWidth);
+      float markerCore = 1.0 - smoothstep(0.65, 1.7, particleDistance);
+      float markerGlow = 1.0 - smoothstep(1.5, 4.2, particleDistance);
+      inflammationParticles = max(
+        inflammationParticles,
+        (markerCore + markerGlow * 0.55) * particleMotion * uDamages[damageIndex].w
+      );
+    }
+
+    float repairIn = smoothstep(1.02, 1.28, age);
+    float repairOut = 1.0 - smoothstep(1.7, 2.18, age);
+    float repairRegion = exp(-dot(damageDelta, damageDelta) * 0.0008);
+    repairWhite = max(repairWhite, repairRegion * repairIn * repairOut * uDamages[damageIndex].w);
+  }
+
   float heightLight = clamp(abs(vHeight) * 8.0, 0.0, 0.5);
   vec3 edgeColor = mix(uTeal400, uTeal200, clamp(heightLight + nodes * 0.15, 0.0, 1.0));
+  vec3 inflammationColor = vec3(1.0, 0.035, 0.17);
+  edgeColor = mix(edgeColor, inflammationColor, clamp(inflammation * 0.95, 0.0, 1.0));
   vec3 color = edgeColor * (line * 0.6 + nodes * 0.58);
+  color += inflammationColor * (inflammation * 0.38 + inflammationParticles * 1.25);
   color += uWhite * (pokeLight * 0.72 + particleLight * 0.92 + hoverLight * 0.12);
-  float alpha = edgeFade * clamp(line * 0.62 + nodes * 0.62 + particleLight + pokeLight * 0.42 + hoverLight * 0.12, 0.0, 1.0);
+  color = mix(color, uWhite, clamp(repairWhite * 1.2, 0.0, 1.0));
+  float alpha = edgeFade * clamp(
+    line * 0.62 + nodes * 0.62 + particleLight + pokeLight * 0.42 + hoverLight * 0.12 + inflammation * 0.28 + inflammationParticles + repairWhite * 0.3,
+    0.0,
+    1.0
+  );
   fragColor = vec4(color, alpha);
 }`;
 
 const MAX_POKES = 8;
 const MAX_BREAKS = 4;
+const MAX_DAMAGE_EVENTS = 8;
 const BREAK_HEAL_SECONDS = 1.6;
+const DAMAGE_RECOVERY_SECONDS = 2.25;
 
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type);
@@ -330,6 +382,7 @@ export function mount(root) {
     variant: 'insert',
     pokes: [],
     breaks: [],
+    damages: [],
     hoverUv: [0.5, 0.5],
     hoverTargetUv: [0.5, 0.5],
     hoverStrength: 0,
@@ -385,7 +438,7 @@ export function mount(root) {
     const names = [
       'uResolution', 'uRotation', 'uTime', 'uWaveAmplitude', 'uReducedMotion',
       'uPokes[0]', 'uPokeRelease[0]', 'uGridCount', 'uLineWidth', 'uNodeSize',
-      'uHover', 'uVariant', 'uBreaks[0]', 'uTeal400', 'uTeal200', 'uWhite'
+      'uHover', 'uVariant', 'uBreaks[0]', 'uDamages[0]', 'uTeal400', 'uTeal200', 'uWhite'
     ];
     const uniforms = Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(program, name)]));
     const mobile = window.matchMedia('(max-width: 767px)').matches;
@@ -440,6 +493,15 @@ export function mount(root) {
     state.lastBreakAt = performance.now();
   }
 
+  function addDamage(uv, strength = 1) {
+    const damage = { uv: [uv[0], uv[1]], start: secondsNow(), strength };
+    state.damages.push(damage);
+    if (state.damages.length > MAX_DAMAGE_EVENTS) {
+      state.damages.shift();
+    }
+    return damage;
+  }
+
   function pointerUv(event) {
     const rect = canvas.getBoundingClientRect();
     const u = (event.clientX - rect.left) / rect.width;
@@ -476,7 +538,8 @@ export function mount(root) {
       lastAt: now,
       dragging: false,
       broke: false,
-      poke: addPoke(uv, Math.max(0.55, event.pressure || 0.5), true)
+      poke: addPoke(uv, Math.max(0.55, event.pressure || 0.5), true),
+      damage: addDamage(uv, Math.max(0.8, event.pressure || 0.5))
     };
     state.lastInputAt = now;
     startRendering();
@@ -523,6 +586,7 @@ export function mount(root) {
         now - state.lastBreakAt > 180
       ) {
         addBreak(uv);
+        addDamage(uv, 1.25);
         active.broke = true;
       }
     } else if (active.poke && uv) {
@@ -570,6 +634,7 @@ export function mount(root) {
     const now = secondsNow();
     state.pokes = state.pokes.filter((poke) => poke.release < 0 || now - poke.release < 1.6);
     state.breaks = state.breaks.filter((entry) => now - entry.start < BREAK_HEAL_SECONDS);
+    state.damages = state.damages.filter((damage) => now - damage.start < DAMAGE_RECOVERY_SECONDS);
     const pokeData = new Float32Array(MAX_POKES * 4);
     const releaseData = new Float32Array(MAX_POKES);
     releaseData.fill(-2);
@@ -589,12 +654,21 @@ export function mount(root) {
       breakData[offset + 2] = entry.start;
       breakData[offset + 3] = entry.strength;
     });
-    return { pokeData, releaseData, breakData };
+    const damageData = new Float32Array(MAX_DAMAGE_EVENTS * 4);
+    state.damages.forEach((damage, index) => {
+      const offset = index * 4;
+      damageData[offset] = damage.uv[0];
+      damageData[offset + 1] = damage.uv[1];
+      damageData[offset + 2] = damage.start;
+      damageData[offset + 3] = damage.strength;
+    });
+    return { pokeData, releaseData, breakData, damageData };
   }
 
   function hasRecoveringPoke() {
     const now = secondsNow();
-    return state.pokes.some((poke) => poke.release < 0 || now - poke.release < 1.6);
+    return state.pokes.some((poke) => poke.release < 0 || now - poke.release < 1.6)
+      || state.damages.some((damage) => now - damage.start < DAMAGE_RECOVERY_SECONDS);
   }
 
   function renderFrame(timestamp) {
@@ -651,6 +725,7 @@ export function mount(root) {
     gl.uniform1f(uniforms.uNodeSize, 1.05);
     gl.uniform1i(uniforms.uVariant, state.variant === 'ribbon' ? 1 : 0);
     gl.uniform4fv(uniforms['uBreaks[0]'], packed.breakData);
+    gl.uniform4fv(uniforms['uDamages[0]'], packed.damageData);
     gl.uniform3fv(uniforms.uTeal400, colors.teal400);
     gl.uniform3fv(uniforms.uTeal200, colors.teal200);
     gl.uniform3fv(uniforms.uWhite, colors.white);

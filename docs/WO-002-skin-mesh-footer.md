@@ -9,7 +9,7 @@ Implement the "Barrier" interactive footer concept as a lazy-loaded WebGL protot
 In scope:
 - Build the footer concept as a standalone, framework-agnostic module.
 - Support Insert and Ribbon silhouettes using a square articulated node lattice.
-- Implement gentle poke deformation and velocity-triggered node break/burst/rejoin healing.
+- Implement gentle poke deformation, velocity-triggered node break/burst/rejoin healing, and inflammation-to-repair color/particle feedback.
 - Implement lazy loading, reduced-motion fallback, and no-WebGL fallback.
 - Add a dev/lab tuning surface for footer-lab only.
 - Capture performance, accessibility, and interaction verification.
@@ -68,9 +68,11 @@ Out of scope:
 - Server has unique per-file backups for each deployment iteration; never overwrite them. Reuse the session baseline snapshot rather than taking another full snapshot for small staging changes.
 - Verified staged hashes, PHP syntax, `www-data` ownership, and both public selector states.
 - The Mesh panel now loads a raw WebGL2 articulated square lattice lazily, with Insert/Ribbon shapes, CSS-token colors, idle flow, drag rotation, poke deformation, velocity-triggered node breaks, returning particles, healing, FPS output, adaptive DPR/segments, and context-loss cleanup.
+- Pokes and breaks trigger a local red/coral flare and neon marker particles. Particles fully dissipate before the white repair phase begins; the local mesh then settles back to teal. Reduced motion suppresses particle travel while preserving the recovery cue.
 - Footer links are arranged in four Mesh-only groups: About (including Contact Us), Services, Resources, and Connect. Legal and Privacy are linked from the copyright line. Other Footer Lab variants remain unchanged.
-- Renderer size: 28,969 bytes raw, 7,405 bytes gzip.
+- Renderer size: 32,505 bytes raw, 8,084 bytes gzip.
 - Verified in-browser: no module request while the mesh was beyond the 400px observer margin; module loaded when approached; Insert/Ribbon control states; 10 mouse taps, 10 slow turns, and 3 fast flicks without browser errors; poke/flick visuals; reduced-motion still and poke recovery; forced no-WebGL CSS fallback; desktop FPS up to 144 and mobile emulation up to 131; mobile banner, no horizontal overflow, and `touch-action: pan-y`.
+- Damage/repair sequence verified in timestamped browser captures: poke and flick produce a red/coral flare and neon markers; marker particles fade completely before the white repair phase; the local grid then settles to teal. Reduced-motion shows a static flare/repair sequence without moving markers. WebGL shader compiled without console or GL errors.
 - Remaining prototype work: client-facing tuning controls for grid/wave/poke/flick/heal values; physical-device touch gesture and scroll tests; context-restoration test; target-device performance measurements; final client visual tuning. Production WordPress integration remains out of scope.
 - Canonical prototype source: `https://github.com/benmawhinney/LabSkin-footer`, branch `feature/interactive-skin-mesh-footer`, commit `b44f5fe` (`Add interactive skin mesh footer prototype`). The branch is pushed and clean. `LabSkin-Dev` remains a separate static-site repo; this repository tracks the WordPress Footer Lab overlay, not a full child-theme checkout.
 
@@ -100,6 +102,7 @@ Out of scope:
 - 2026-10-09: Design direction refined from Voronoi cells to an articulated square node grid with velocity-triggered break and heal behavior.
 - 2026-10-09: Raw WebGL2 mesh deployed to M&C dev/staging. Four-column navigation and legal links integrated; lazy load, mouse gestures, reduced-motion, no-WebGL fallback, mobile layout, and gzip size verified. Tuning controls, physical-device tests, context restoration, target-device performance, and canonical GitHub source mapping remain open.
 - 2026-10-09: Created and pushed the canonical `LabSkin-footer` prototype source on `feature/interactive-skin-mesh-footer`; initial commit `b44f5fe`.
+- 2026-10-09: Added and deployed inflammation/repair marker feedback; verified particle dissipation precedes the white recovery phase.
 
 ## Sign-off
 
