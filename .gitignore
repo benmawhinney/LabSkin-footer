@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.bak
+*.bak-*
+*.log
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+build/
