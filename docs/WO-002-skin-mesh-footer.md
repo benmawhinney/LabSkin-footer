@@ -71,7 +71,7 @@ Out of scope:
 - Renderer size: 28,969 bytes raw, 7,405 bytes gzip.
 - Verified in-browser: no module request while the mesh was beyond the 400px observer margin; module loaded when approached; Insert/Ribbon control states; 10 mouse taps, 10 slow turns, and 3 fast flicks without browser errors; poke/flick visuals; reduced-motion still and poke recovery; forced no-WebGL CSS fallback; desktop FPS up to 144 and mobile emulation up to 131; mobile banner, no horizontal overflow, and `touch-action: pan-y`.
 - Remaining prototype work: client-facing tuning controls for grid/wave/poke/flick/heal values; physical-device touch gesture and scroll tests; context-restoration test; target-device performance measurements; final client visual tuning. Production WordPress integration remains out of scope.
-- GitHub CLI is authenticated, but the child-theme mirror has no Git metadata or remote. The available `LabSkin-Dev` clone points to `benmawhinney/LabSkin-Dev`, is clean on `main`, and contains a different static-site footer structure. No commit has been made to avoid putting the WordPress theme in the wrong repository. Confirm or create the canonical child-theme repository, then commit on a feature branch, never `main`.
+- Canonical prototype source: `https://github.com/benmawhinney/LabSkin-footer`, branch `feature/interactive-skin-mesh-footer`, commit `b44f5fe` (`Add interactive skin mesh footer prototype`). The branch is pushed and clean. `LabSkin-Dev` remains a separate static-site repo; this repository tracks the WordPress Footer Lab overlay, not a full child-theme checkout.
 
 ## Risks and Mitigations
 
@@ -98,6 +98,7 @@ Out of scope:
 - 2026-10-09: Mesh concept scaffold deployed to M&C dev/staging; Current and Mesh public states verified. WebGL implementation remains pending.
 - 2026-10-09: Design direction refined from Voronoi cells to an articulated square node grid with velocity-triggered break and heal behavior.
 - 2026-10-09: Raw WebGL2 mesh deployed to M&C dev/staging. Four-column navigation and legal links integrated; lazy load, mouse gestures, reduced-motion, no-WebGL fallback, mobile layout, and gzip size verified. Tuning controls, physical-device tests, context restoration, target-device performance, and canonical GitHub source mapping remain open.
+- 2026-10-09: Created and pushed the canonical `LabSkin-footer` prototype source on `feature/interactive-skin-mesh-footer`; initial commit `b44f5fe`.
 
 ## Sign-off
 
