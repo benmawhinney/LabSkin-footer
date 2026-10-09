@@ -58,8 +58,9 @@ Out of scope:
 
 ## Prototype Checkpoint
 
-- Added a separate Mesh concept tab and panel to Footer Lab, based on the live child-theme footer and its existing WordPress links.
-- Restored the Current footer panel to its original presentation; the intro treatment is exclusive to Mesh.
+- Added a separate Mesh concept tab and panel to Footer Lab, based on the live child-theme footer and its existing WordPress links; the Current variant remains unchanged.
+- Placed the Mesh label and Insert/Ribbon selector inside the footer as an overlay toolbar; the WebGL mesh remains a positioned canvas layer, not a separate footer component.
+- The Mesh intro block is commented out for future testimonial/client-logo content.
 - Deployed to the M&C dev/staging site: https://mischiefandcraft.com/footer-lab/?footer=mesh
 - Pre-deploy Lightsail snapshot: `labskin-dev-pre-footer-mesh-20261009` (state: available).
 - WebGL work-session baseline snapshot: `labskin-dev-pre-articulated-mesh-20261009` (state: available). Use one full-instance snapshot per work session; retain unique per-file backups for each deployment iteration.

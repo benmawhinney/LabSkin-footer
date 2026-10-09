@@ -257,7 +257,7 @@ $logo_markup = $render_logo();
 				</div>
 
 				<div class="footer-lab-panel" data-footer-panel="mesh" aria-hidden="true" hidden>
-					<div class="footer-lab-note">Mesh concept</div>
+					<!-- Reserved for a testimonial or client-logo band.
 					<section class="footer-lab-mesh-intro" aria-labelledby="footer-lab-mesh-intro-title">
 						<div class="footer-lab-mesh-intro__eyebrow">Enhanced footer treatment</div>
 						<div class="footer-lab-mesh-intro__body">
@@ -271,9 +271,17 @@ $logo_markup = $render_logo();
 							</div>
 						</div>
 					</section>
+					-->
 					<footer class="site-footer footer-lab-current-footer footer-lab-mesh-footer" role="contentinfo" data-mesh-state="idle">
 						<div class="footer-lab-mesh-fallback" aria-hidden="true"></div>
 						<canvas class="footer-lab-mesh-canvas" data-footer-mesh-canvas aria-hidden="true"></canvas>
+						<div class="footer-lab-mesh-overlay">
+							<span class="footer-lab-mesh-label">Mesh concept</span>
+							<div class="footer-lab-mesh-variants" role="group" aria-label="Mesh shape">
+								<button type="button" data-mesh-variant="insert" aria-pressed="true">Insert</button>
+								<button type="button" data-mesh-variant="ribbon" aria-pressed="false">Ribbon</button>
+							</div>
+						</div>
 						<output class="footer-lab-mesh-fps" data-footer-mesh-fps aria-live="off">FPS --</output>
 						<div class="inner-wrap">
 							<div class="footer-lab-mesh-columns">
