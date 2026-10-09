@@ -225,10 +225,10 @@ $logo_markup = $render_logo();
 			<section class="footer-lab-controls" aria-label="Footer variant selector">
 				<div class="footer-lab-selector" role="tablist" aria-label="Footer treatments">
 					<button type="button" role="tab" aria-selected="true" aria-pressed="true" data-footer-variant="current">Current footer</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
+					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="github">LabSkin-Dev footer</button>
 					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="preview">Evidence concept</button>
 					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="fluorescent">Fluorescent concept</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="github">LabSkin-Dev footer</button>
+					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
 				</div>
 				<div class="footer-lab-status" id="footer-lab-status">Showing the live child-theme footer.</div>
 			</section>

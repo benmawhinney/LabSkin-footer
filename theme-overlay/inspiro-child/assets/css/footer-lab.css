@@ -157,6 +157,37 @@
 	background: linear-gradient(180deg, #0a1420 0%, #061019 100%);
 }
 
+.footer-lab-current-footer .footer-menu a {
+	position: relative;
+}
+
+.footer-lab-current-footer .footer-menu a::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -4px;
+	width: 0;
+	height: 2px;
+	background: #ffffff;
+	transition: width 0.3s ease;
+}
+
+.footer-lab-current-footer .footer-menu a:hover::after,
+.footer-lab-current-footer .footer-menu a:focus-visible::after {
+	width: 100%;
+}
+
+.footer-lab-current-footer .footer-menu a:hover,
+.footer-lab-current-footer .footer-menu a:focus-visible {
+	color: rgba(255, 255, 255, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.footer-lab-current-footer .footer-menu a::after {
+		transition: none;
+	}
+}
+
 .footer-lab-mesh-footer {
 	position: relative;
 	overflow: hidden;
