@@ -1636,12 +1636,35 @@ html:has(.footer-lab-viewer) {
 }
 
 .footer-field__list a {
+	position: relative;
 	display: block;
 	width: max-content;
 	max-width: 100%;
 	text-decoration: none;
 	margin-top: 8px;
 	font-size: 0.92rem;
+}
+
+.footer-field__list a::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -4px;
+	width: 0;
+	height: 2px;
+	background: #ffffff;
+	transition: width 0.3s ease;
+}
+
+.footer-field__list a:hover::after,
+.footer-field__list a:focus-visible::after {
+	width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.footer-field__list a::after {
+		transition: none;
+	}
 }
 
 .footer-field__bottom {
