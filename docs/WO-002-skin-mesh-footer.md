@@ -54,7 +54,7 @@ Out of scope:
 4. Verify reduced motion and fallback behavior.
 5. Record bundle size and frame timing before sign-off.
 6. Complete 20-gesture mouse and touch checks, including ordinary pokes, turns, fast flicks, and mobile vertical scrolling.
-7. Resolve the canonical GitHub home for the WordPress child-theme source before committing; `LabSkin-Dev` is a separate static-site clone and does not currently contain this child theme.
+7. Keep the implementation in the canonical `LabSkin-footer` feature branch; do not merge to `main` until source mapping and production sign-off are complete.
 
 ## Prototype Checkpoint
 
@@ -74,7 +74,7 @@ Out of scope:
 - Verified in-browser: no module request while the mesh was beyond the 400px observer margin; module loaded when approached; Insert/Ribbon control states; 10 mouse taps, 10 slow turns, and 3 fast flicks without browser errors; poke/flick visuals; reduced-motion still and poke recovery; forced no-WebGL CSS fallback; desktop FPS up to 144 and mobile emulation up to 131; mobile banner, no horizontal overflow, and `touch-action: pan-y`.
 - Damage/repair sequence verified in timestamped browser captures: poke and flick produce a red/coral flare and neon markers; marker particles fade completely before the white repair phase; the local grid then settles to teal. Reduced-motion shows a static flare/repair sequence without moving markers. WebGL shader compiled without console or GL errors.
 - Remaining prototype work: client-facing tuning controls for grid/wave/poke/flick/heal values; physical-device touch gesture and scroll tests; context-restoration test; target-device performance measurements; final client visual tuning. Production WordPress integration remains out of scope.
-- Canonical prototype source: `https://github.com/benmawhinney/LabSkin-footer`, branch `feature/interactive-skin-mesh-footer`, latest commit `36a8e5e` (`Add inflammation and repair mesh response`). The branch is pushed and clean. `LabSkin-Dev` remains a separate static-site repo; this repository tracks the WordPress Footer Lab overlay, not a full child-theme checkout.
+- Canonical prototype source: `https://github.com/benmawhinney/LabSkin-footer`, branch `feature/interactive-skin-mesh-footer`, latest commit `5db4a9d` (`Record latest inflammation repair commit`). The branch is pushed and clean. `LabSkin-Dev` remains a separate static-site repo; this repository tracks the WordPress Footer Lab overlay, not a full child-theme checkout.
 
 ## Risks and Mitigations
 
