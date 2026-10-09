@@ -54,10 +54,14 @@ void main() {
   float yawSin = sin(uRotation.x);
   float pitchCos = cos(uRotation.y);
   float pitchSin = sin(uRotation.y);
+  vec2 spun = vec2(
+    point.x * yawCos - point.y * yawSin,
+    point.x * yawSin + point.y * yawCos
+  );
   vec3 turned = vec3(
-    point.x * yawCos + point.z * yawSin,
-    point.y * pitchCos - point.z * pitchSin,
-    -point.x * yawSin + point.y * pitchSin + point.z * pitchCos
+    spun.x,
+    spun.y * pitchCos - point.z * pitchSin,
+    spun.y * pitchSin + point.z * pitchCos
   );
 
   float aspectCorrection = uResolution.y / max(1.0, uResolution.x);
@@ -205,29 +209,29 @@ void main() {
     float damageDistance = length(damageDelta);
     float localGlow = exp(-dot(damageDelta, damageDelta) * 0.008);
     float flareIn = smoothstep(0.0, 0.12, age);
-    float flareOut = 1.0 - smoothstep(0.72, 1.2, age);
+    float flareOut = 1.0 - smoothstep(0.8, 1.2, age);
     inflammation = max(inflammation, localGlow * flareIn * flareOut * uDamages[damageIndex].w);
 
-    float particleIn = smoothstep(0.04, 0.16, age);
-    float particleOut = 1.0 - smoothstep(0.74, 0.9, age);
+    float particleIn = smoothstep(1.15, 1.3, age);
+    float particleOut = 1.0 - smoothstep(2.35, 3.0, age);
     float particleMotion = uReducedMotion > 0.5 ? 0.0 : particleIn * particleOut;
     for (int particleIndex = 0; particleIndex < 8; particleIndex++) {
       float seed = hashValue(float(particleIndex) + uDamages[damageIndex].x * 41.0 + uDamages[damageIndex].y * 23.0);
       float angle = float(particleIndex) * 2.399963 + seed * 6.283185;
       vec2 heading = vec2(cos(angle), sin(angle));
-      float travel = smoothstep(0.08, 0.72, age) * (2.5 + seed * 3.0);
+      float travel = smoothstep(1.15, 2.35, age) * (2.5 + seed * 3.0);
       vec2 particlePosition = damageCenter + heading * travel;
       float particleDistance = length((grid - particlePosition) / pixelWidth);
-      float markerCore = 1.0 - smoothstep(0.65, 1.7, particleDistance);
-      float markerGlow = 1.0 - smoothstep(1.5, 4.2, particleDistance);
+      float markerCore = 1.0 - smoothstep(0.55, 1.2, particleDistance);
+      float markerGlow = 1.0 - smoothstep(1.0, 2.1, particleDistance);
       inflammationParticles = max(
         inflammationParticles,
-        (markerCore + markerGlow * 0.55) * particleMotion * uDamages[damageIndex].w
+        (markerCore + markerGlow * 0.24) * particleMotion * uDamages[damageIndex].w
       );
     }
 
-    float repairIn = smoothstep(1.02, 1.28, age);
-    float repairOut = 1.0 - smoothstep(1.7, 2.18, age);
+    float repairIn = smoothstep(1.05, 1.3, age);
+    float repairOut = 1.0 - smoothstep(3.0, 3.5, age);
     float repairRegion = exp(-dot(damageDelta, damageDelta) * 0.0008);
     repairWhite = max(repairWhite, repairRegion * repairIn * repairOut * uDamages[damageIndex].w);
   }
@@ -252,7 +256,7 @@ const MAX_POKES = 8;
 const MAX_BREAKS = 4;
 const MAX_DAMAGE_EVENTS = 8;
 const BREAK_HEAL_SECONDS = 1.6;
-const DAMAGE_RECOVERY_SECONDS = 2.25;
+const DAMAGE_RECOVERY_SECONDS = 3.6;
 
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type);
@@ -504,12 +508,32 @@ export function mount(root) {
 
   function pointerUv(event) {
     const rect = canvas.getBoundingClientRect();
-    const u = (event.clientX - rect.left) / rect.width;
-    const v = 1 - (event.clientY - rect.top) / rect.height;
-    if (u < 0.08 || u > 0.92 || v < 0.08 || v > 0.92) {
+    const ndcX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = 1 - ((event.clientY - rect.top) / rect.height) * 2;
+    const aspectCorrection = rect.height / Math.max(1, rect.width);
+    const projectedX = ndcX / (0.91 * aspectCorrection);
+    const projectedY = ndcY / 0.86;
+    const yawCos = Math.cos(state.yaw);
+    const yawSin = Math.sin(state.yaw);
+    const pitchCos = Math.cos(state.pitch);
+    if (Math.abs(pitchCos) < 0.2) {
       return null;
     }
-    return [u, v];
+
+    const spunY = projectedY / pitchCos;
+    const localX = projectedX * yawCos + spunY * yawSin;
+    const localY = -projectedX * yawSin + spunY * yawCos;
+    const uv = [localX * 0.5 + 0.5, 0.5 - localY * 0.5];
+    if (uv[0] < 0 || uv[0] > 1 || uv[1] < 0 || uv[1] > 1) {
+      return null;
+    }
+
+    const sheetX = (uv[0] - 0.5) * 2;
+    const sheetY = (uv[1] - 0.5) * 2;
+    const edgeDistance = state.variant === 'ribbon'
+      ? Math.max(Math.abs(sheetX), Math.abs(sheetY) * 1.75)
+      : Math.max(Math.abs(sheetX), Math.abs(sheetY));
+    return edgeDistance <= 0.94 ? uv : null;
   }
 
   function releaseActivePoke() {
