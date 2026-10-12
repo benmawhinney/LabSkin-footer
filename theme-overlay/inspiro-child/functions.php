@@ -59,8 +59,75 @@ function inspiro_child_enqueue_styles() {
 			true
 		);
 	}
+
+	if ( is_front_page() ) {
+		inspiro_child_enqueue_footer_treatment_assets();
+		wp_enqueue_script(
+			'inspiro-child-model-explorer-host',
+			get_stylesheet_directory_uri() . '/assets/js/model-explorer-host.js',
+			array(),
+			(string) filemtime( get_stylesheet_directory() . '/assets/js/model-explorer-host.js' ),
+			true
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'inspiro_child_enqueue_styles', 20 );
+
+/**
+ * Enqueue the treatment previews used by the homepage footer selector.
+ */
+function inspiro_child_enqueue_footer_treatment_assets() {
+	$theme_version = wp_get_theme()->get( 'Version' );
+	$asset_version = static function ( $relative_path ) use ( $theme_version ) {
+		$asset_path = get_stylesheet_directory() . $relative_path;
+		return file_exists( $asset_path ) ? (string) filemtime( $asset_path ) : $theme_version;
+	};
+
+	wp_enqueue_style(
+		'inspiro-child-skin-footer',
+		get_stylesheet_directory_uri() . '/assets/css/skin-footer.css',
+		array(),
+		$asset_version( '/assets/css/skin-footer.css' )
+	);
+
+	wp_enqueue_style(
+		'inspiro-child-footer-lab',
+		get_stylesheet_directory_uri() . '/assets/css/footer-lab.css',
+		array( 'inspiro-parent', 'inspiro-style', 'inspiro-child-skin-footer', 'inspiro-child' ),
+		$asset_version( '/assets/css/footer-lab.css' )
+	);
+
+	wp_enqueue_script(
+		'inspiro-child-skin-footer',
+		get_stylesheet_directory_uri() . '/assets/js/skin-footer.js',
+		array(),
+		$asset_version( '/assets/js/skin-footer.js' ),
+		true
+	);
+
+	wp_enqueue_script(
+		'inspiro-child-footer-lab-preview-animation',
+		get_stylesheet_directory_uri() . '/assets/js/footer-lab-preview-animation.js',
+		array(),
+		$asset_version( '/assets/js/footer-lab-preview-animation.js' ),
+		true
+	);
+
+	wp_enqueue_script(
+		'inspiro-child-footer-lab',
+		get_stylesheet_directory_uri() . '/assets/js/footer-lab.js',
+		array( 'inspiro-child-skin-footer', 'inspiro-child-footer-lab-preview-animation' ),
+		$asset_version( '/assets/js/footer-lab.js' ),
+		true
+	);
+
+	$mesh_module_url = get_stylesheet_directory_uri() . '/assets/js/footer-mesh.js?ver=' . rawurlencode( $asset_version( '/assets/js/footer-mesh.js' ) );
+	wp_add_inline_script(
+		'inspiro-child-footer-lab',
+		'window.footerMeshModuleUrl = ' . wp_json_encode( $mesh_module_url ) . ';',
+		'before'
+	);
+}
 
 /**
  * Keep the externally previewable M&C staging copy out of search indexes.

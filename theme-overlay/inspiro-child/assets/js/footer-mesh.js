@@ -881,6 +881,9 @@ export function mount(root) {
     }
   }, { rootMargin: '100px' });
   visibilityObserver.observe(root);
+  const rootBounds = root.getBoundingClientRect();
+  state.visible = rootBounds.bottom > 0 && rootBounds.top < window.innerHeight;
+  startRendering();
 
   return {
     setVariant,

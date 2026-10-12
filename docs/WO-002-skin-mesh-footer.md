@@ -65,6 +65,9 @@ Out of scope:
 - Placed the Mesh label and Insert/Ribbon selector inside the footer as an overlay toolbar; the WebGL mesh remains a positioned canvas layer, not a separate footer component.
 - The Mesh intro block is commented out for future testimonial/client-logo content.
 - The M&C staging host emits `X-Robots-Tag: noindex, nofollow` site-wide through a host-gated WordPress filter; staging `robots.txt` remains crawlable and the Labskin production host is excluded.
+- The five footer treatments are now available in the M&C staging homepage footer. The selector uses a blueprint panel marked “Prototype controls / Not part of the final page! 🙂”; no M&C-specific explainer copy is shown. Other site pages retain their normal footer.
+- Fluorescent renders without the top view-mode strip, scrubber, pause control, or review-only explanatory copy; its camera motion starts when selected. Mesh defaults to Insert, with its Insert/Ribbon buttons commented out.
+- LabSkin-Dev footer includes the supplied 1940x500 SCS Formulate banner as a full-width row between the main footer content and legal row; it preserves its aspect ratio on mobile.
 - Converted eight homepage image families plus 26 responsive derivatives to quality-90 WebP (34 outputs); all original/converted files dropped from 9,454,141 to 1,204,402 bytes (87.3%), while full-size assets dropped from 5,018,756 to 513,872 bytes (89.8%). Original uploads remain in place. Homepage attachment metadata/srcsets, header settings, block URLs, and map cover background now reference WebP.
 - Targeted migration rollback data: `/home/ubuntu/homepage-webp-before-20261009.json` and `/home/ubuntu/homepage-webp-map-srcset-20261009.json`.
 - Deployed to the M&C dev/staging site: https://mischiefandcraft.com/footer-lab/?footer=mesh
@@ -86,6 +89,13 @@ Out of scope:
 - Canonical prototype source: `https://github.com/benmawhinney/LabSkin-footer`, branch `feature/interactive-skin-mesh-footer`. Mesh implementation commit: `36a8e5e` (`Add inflammation and repair mesh response`); follow-up commits on the same branch record verification and status. `LabSkin-Dev` remains a separate static-site repo; this repository tracks the WordPress Footer Lab overlay, not a full child-theme checkout.
 
 ## Risks and Mitigations
+
+Current staging checkpoint (2026-10-12):
+- Homepage footer showcase is deployed with blueprint prototype-only controls, mobile mesh/nav separation, automatic Fluorescent motion, hidden top/bottom mobile duplicate taglines, and the responsive LabSkin-Dev event banner.
+- Full-thickness model explainer is deployed above the footer, reusing the Footer Lab shader/effect source with a translucent epidermis and triangular dermis. Scene interactions are schematic, not physiological simulation; triangles are not individual cells.
+- Lazy isolated embed, local pinned Three.js dependencies, origin-checked frame sizing, offscreen pause/resume, reduced-motion startup and no-WebGL fallback are verified. Existing five footer variants remain functional; the clean About route retains its normal footer and no explainer.
+- Session rollback baseline: `labskin-php85-pre-homepage-footer-20261012` (available). Model integration file backups use `.bak-model-explorer-20261012-220609`; final scroll offset and static noindex changes have their own later backups.
+- Final Lighthouse: mobile 53/96/100/61 and desktop 95/96/100/61 (Performance/Accessibility/Best Practices/SEO). Follow up mobile LCP, existing `/index.php/` menu URLs, physical touch/device performance and scientific sign-off. Production and `main` remain unchanged.
 
 - Risk: visual complexity causes the module to exceed the size budget.
 - Mitigation: keep to raw WebGL or a minimal helper library and avoid extra passes.

@@ -213,28 +213,18 @@ $logo_markup = $render_logo();
 <div class="inner-wrap footer-lab-page">
 	<main id="main" class="site-main footer-lab-page__content" role="main">
 		<section class="footer-lab-shell">
-			<header class="footer-lab-masthead">
-				<div>
-					<p class="footer-lab-eyebrow">Mischief &amp; Craft prototype surface</p>
-					<h1>Footer Lab</h1>
-					<p class="footer-lab-lead">Compare the live child-theme footer with four concept treatments. The mesh concept starts from the live footer and adds a more dramatic opening scene for review.</p>
-				</div>
-				<div class="footer-lab-badge">Prototype live on M&amp;C</div>
-			</header>
-
 			<section class="footer-lab-controls" aria-label="Footer variant selector">
-				<div class="footer-lab-selector" role="tablist" aria-label="Footer treatments">
-					<button type="button" role="tab" aria-selected="true" aria-pressed="true" data-footer-variant="current">Current footer</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="github">LabSkin-Dev footer</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="preview">Evidence concept</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="fluorescent">Fluorescent concept</button>
-					<button type="button" role="tab" aria-selected="false" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
+				<div class="footer-lab-selector" role="group" aria-label="Footer treatments">
+					<button type="button" aria-pressed="true" data-footer-variant="current">Current footer</button>
+					<button type="button" aria-pressed="false" data-footer-variant="github">LabSkin-Dev footer</button>
+					<button type="button" aria-pressed="false" data-footer-variant="preview">Evidence concept</button>
+					<button type="button" aria-pressed="false" data-footer-variant="fluorescent">Fluorescent concept</button>
+					<button type="button" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
 				</div>
 			</section>
 
 			<section class="footer-lab-viewer" aria-live="polite">
 				<div class="footer-lab-panel is-active" data-footer-panel="current" aria-hidden="false">
-					<div class="footer-lab-note">Live child theme footer</div>
 					<footer class="site-footer footer-lab-current-footer" role="contentinfo">
 						<div class="inner-wrap">
 							<?php get_template_part( 'template-parts/footer/footer', 'widgets' ); ?>
@@ -276,10 +266,12 @@ $logo_markup = $render_logo();
 						<canvas class="footer-lab-mesh-canvas" data-footer-mesh-canvas aria-hidden="true"></canvas>
 						<div class="footer-lab-mesh-overlay">
 							<span class="footer-lab-mesh-label">Mesh concept</span>
+							<!--
 							<div class="footer-lab-mesh-variants" role="group" aria-label="Mesh shape">
 								<button type="button" data-mesh-variant="insert" aria-pressed="true">Insert</button>
 								<button type="button" data-mesh-variant="ribbon" aria-pressed="false">Ribbon</button>
 							</div>
+							-->
 						</div>
 						<output class="footer-lab-mesh-fps" data-footer-mesh-fps aria-live="off">FPS --</output>
 						<div class="inner-wrap">
@@ -311,7 +303,6 @@ $logo_markup = $render_logo();
 				</div>
 
 				<div class="footer-lab-panel" data-footer-panel="preview" aria-hidden="true" hidden>
-					<div class="footer-lab-note">Evidence concept</div>
 					<footer class="footer-field footer-field--static" aria-labelledby="layered-static-title">
 						<canvas class="footer-field__canvas" data-footer-preview-canvas aria-hidden="true"></canvas>
 
@@ -361,17 +352,6 @@ $logo_markup = $render_logo();
 				</div>
 
 				<div class="footer-lab-panel" data-footer-panel="fluorescent" aria-hidden="true" hidden>
-					<div class="footer-lab-note">Fluorescent concept</div>
-					<div class="footer-lab-journey-bar">
-						<div class="footer-lab-journey-copy">
-							<p class="footer-lab-journey-title">Follow the tissue.</p>
-							<p class="footer-lab-journey-note">Prototype controls for an end-user review surface.</p>
-						</div>
-						<div class="footer-lab-journey-actions" role="group" aria-label="Animated footer view mode">
-							<button type="button" data-skin-view="footer" aria-pressed="true">Behind footer content</button>
-							<button type="button" data-skin-view="specimen" aria-pressed="false">Explore specimen</button>
-						</div>
-					</div>
 					<footer class="skin-footer footer-lab-fluorescent" id="footer-lab-fluorescent" data-view="footer">
 						<div class="skin-footer__scene" aria-hidden="true">
 							<img class="skin-footer__image" src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/images/skin-section.webp' ); ?>" alt="" width="1080" height="1080" loading="lazy" decoding="async">
@@ -385,8 +365,7 @@ $logo_markup = $render_logo();
 							<div class="footer-lab-fluorescent__main">
 								<div class="footer-lab-fluorescent__brand">
 									<div class="footer-lab-logo"><?php echo wp_kses_post( $logo_markup ); ?></div>
-									<h2>Within the section.</h2>
-									<p>Real footer content, live WordPress menus, and a motion-led specimen journey combined into one review surface. This treatment is intended as the boldest prototype, not the default production footer.</p>
+									<?php if ( get_bloginfo( 'description' ) ) : ?><p><?php bloginfo( 'description' ); ?></p><?php endif; ?>
 									<?php $render_social( $social_links ); ?>
 								</div>
 								<div class="footer-lab-fluorescent__grid">
@@ -398,24 +377,10 @@ $logo_markup = $render_logo();
 								<span><?php bloginfo( 'description' ); ?></span>
 							</div>
 						</div>
-						<span class="footer-lab-specimen-label">Source 01 / fluorescent skin section</span>
-						<button class="skin-footer__motion" type="button" hidden>Pause background</button>
 					</footer>
-					<div class="footer-lab-scrubber">
-						<label class="footer-lab-scrubber__label" for="footer-lab-progress">Camera journey</label>
-						<input id="footer-lab-progress" data-skin-range type="range" min="0" max="100" step="0.1" value="0" aria-valuetext="0 percent of camera journey">
-						<div class="footer-lab-scrubber__stops">
-							<button type="button" data-skin-position="0">00 / Establish</button>
-							<button type="button" data-skin-position="0.25">18 / Sweep</button>
-							<button type="button" data-skin-position="0.5">36 / Cellular field</button>
-							<button type="button" data-skin-position="0.75">54 / Return</button>
-						</div>
-						<p class="footer-lab-scrubber__status" id="footer-lab-motion-status" aria-live="polite">72-second seamless journey</p>
-					</div>
 				</div>
 
 				<div class="footer-lab-panel" data-footer-panel="github" aria-hidden="true" hidden>
-					<div class="footer-lab-note">LabSkin-Dev footer</div>
 					<footer class="footer-lab-github" aria-label="LabSkin footer">
 						<div class="footer-lab-github__container">
 							<div class="footer-lab-github__main">

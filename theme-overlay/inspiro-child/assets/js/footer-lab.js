@@ -8,6 +8,7 @@
 	}
 
 	const storageKey = 'mcFooterLabVariant';
+	const homepageMode = shell.hasAttribute('data-footer-homepage');
 	const status = document.getElementById('footer-lab-status');
 	const currentScriptUrl = document.currentScript ? new URL(document.currentScript.src) : null;
 	const meshModuleUrl = window.footerMeshModuleUrl
@@ -27,7 +28,6 @@
 	let previewApi = null;
 	let fluorescentMounted = false;
 	let fluorescentApi = null;
-	let meshObserver = null;
 	let meshApi = null;
 	let meshImporting = false;
 
@@ -46,7 +46,7 @@
 	}
 
 	function mountMeshPanel() {
-		if (meshApi || meshObserver || meshImporting || !meshModuleUrl) {
+		if (meshApi || meshImporting || !meshModuleUrl) {
 			return;
 		}
 
@@ -55,35 +55,15 @@
 			return;
 		}
 
-		meshObserver = new IntersectionObserver(function (entries) {
-			if (!entries[0] || !entries[0].isIntersecting) {
-				return;
-			}
-
-			meshObserver.disconnect();
-			meshObserver = null;
-			meshImporting = true;
-
-			import(meshModuleUrl.href).then(function (module) {
-				meshApi = module.mount(root);
-				meshImporting = false;
-				shell.querySelectorAll('[data-mesh-variant]').forEach(function (button) {
-					button.addEventListener('click', function () {
-						const variant = button.getAttribute('data-mesh-variant');
-						meshApi.setVariant(variant);
-						shell.querySelectorAll('[data-mesh-variant]').forEach(function (candidate) {
-							candidate.setAttribute('aria-pressed', String(candidate === button));
-						});
-					});
-				});
-			}).catch(function (error) {
-				meshImporting = false;
-				root.dataset.meshState = 'fallback';
-				console.error('Footer mesh module failed to load.', error);
+		meshImporting = true;
+		import(meshModuleUrl.href).then(function (module) {
+			meshApi = module.mount(root);
+			meshImporting = false;
+		}).catch(function (error) {
+			meshImporting = false;
+			root.dataset.meshState = 'fallback';
+			console.error('Footer mesh module failed to load.', error);
 			});
-		}, { rootMargin: '400px 0px 400px 0px', threshold: 0.01 });
-
-		meshObserver.observe(root);
 	}
 
 	function updateQuery(variant) {
@@ -97,82 +77,23 @@
 			return;
 		}
 
-		const root = document.getElementById('footer-lab-fluorescent');
-		const range = document.querySelector('[data-skin-range]');
-		const statusNode = document.getElementById('footer-lab-motion-status');
-		const viewButtons = Array.from(document.querySelectorAll('[data-skin-view]'));
-		const stopButtons = Array.from(document.querySelectorAll('[data-skin-position]'));
-
-		if (!root || !range || !statusNode) {
+		const root = shell.querySelector('[data-footer-panel="fluorescent"] .footer-lab-fluorescent');
+		if (!root) {
 			return;
 		}
 
+		const image = root.querySelector('.skin-footer__image');
+		if (image) {
+			image.loading = 'eager';
+		}
+
 		fluorescentApi = window.SkinFooter.mount(root, { duration: 72000 });
-		fluorescentMounted = true;
-
-		const scrub = function (value) {
-			fluorescentApi.seek(value);
-			range.value = value * 100;
-			range.setAttribute('aria-valuetext', Math.round(value * 100) + ' percent of camera journey');
-		};
-
-		viewButtons.forEach(function (button) {
-			button.addEventListener('click', function () {
-				const view = button.getAttribute('data-skin-view');
-				root.dataset.view = view;
-				viewButtons.forEach(function (candidate) {
-					candidate.setAttribute('aria-pressed', String(candidate === button));
-				});
-			});
-		});
-
-		range.addEventListener('input', function () {
-			scrub(Number(range.value) / 100);
-		});
-
-		stopButtons.forEach(function (button) {
-			button.addEventListener('click', function () {
-				scrub(Number(button.getAttribute('data-skin-position')));
-			});
-		});
-
-		window.setInterval(function () {
-			if (!fluorescentApi) {
-				return;
-			}
-
-			const motionState = fluorescentApi.getState();
-
-			if (motionState.running) {
-				range.value = motionState.progress * 100;
-				range.setAttribute('aria-valuetext', Math.round(motionState.progress * 100) + ' percent of camera journey');
-			}
-		}, 500);
-
-		root.addEventListener('skinfooterstate', function (event) {
-			const motionState = event.detail;
-
-			if (motionState.failed) {
-				statusNode.textContent = 'Image unavailable';
-			} else if (motionState.reducedMotion || motionState.saveData) {
-				statusNode.textContent = 'Motion preference respected - static view';
-			} else if (motionState.paused) {
-				statusNode.textContent = 'Journey paused - inspect the section';
-			} else {
-				statusNode.textContent = '72-second seamless journey';
-			}
-
-			range.disabled = motionState.reducedMotion || motionState.saveData || !motionState.ready || motionState.failed;
-			stopButtons.forEach(function (button) {
-				button.disabled = range.disabled;
-			});
-		});
+		fluorescentMounted = Boolean(fluorescentApi);
 	}
 
 	function setVariant(variant) {
 		tabs.forEach(function (tab) {
 			const active = tab.getAttribute('data-footer-variant') === variant;
-			tab.setAttribute('aria-selected', String(active));
 			tab.setAttribute('aria-pressed', String(active));
 		});
 
@@ -187,11 +108,20 @@
 			status.textContent = labels[variant] || labels.current;
 		}
 
-		window.localStorage.setItem(storageKey, variant);
-		updateQuery(variant);
+		if (!homepageMode) {
+			window.localStorage.setItem(storageKey, variant);
+			updateQuery(variant);
+		}
 
 		if ('preview' === variant) {
 			mountPreviewPanel();
+		}
+
+		if ('github' === variant) {
+			const banner = shell.querySelector('[data-footer-panel="github"] .footer-lab-github__banner img');
+			if (banner) {
+				banner.loading = 'eager';
+			}
 		}
 
 		if ('mesh' === variant) {
@@ -209,6 +139,8 @@
 		});
 	});
 
-	const initialVariant = (new URL(window.location.href)).searchParams.get('footer') || window.localStorage.getItem(storageKey) || 'current';
+	const initialVariant = homepageMode
+		? 'current'
+		: (new URL(window.location.href)).searchParams.get('footer') || window.localStorage.getItem(storageKey) || 'current';
 	setVariant(labels[initialVariant] ? initialVariant : 'current');
 })();

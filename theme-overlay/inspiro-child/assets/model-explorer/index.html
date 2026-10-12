@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Labskin | Full-thickness model</title>
+  <style>
+    :root { color-scheme: dark; --bg: #06151b; --ink: #edf7f5; --muted: #a7bcbf; --barrier: #5fc9c4; --epidermis: #adc9ed; --dermis: #e4ad8d; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Trebuchet MS', sans-serif; }
+    button, input { font: inherit; }
+    .explorer { max-width: 1440px; margin: auto; padding: 32px 40px; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 24px; border-bottom: 1px solid #284047; padding-bottom: 24px; }
+    .eyebrow { color: var(--barrier); font-size: 12px; text-transform: uppercase; margin: 0 0 10px; }
+    h1 { font-size: 36px; font-weight: 500; margin: 0; }
+    .subtitle { color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
+    .schematic { color: var(--muted); font-size: 12px; margin: 0; white-space: nowrap; }
+    .scene { position: relative; height: 560px; overflow: hidden; background: radial-gradient(ellipse at 50% 55%, #0c2329 0, #040c12 72%); }
+    canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
+    .scene-note { position: absolute; bottom: 20px; left: 0; font-size: 12px; color: var(--muted); pointer-events: none; }
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: center; padding: 18px 0; border-top: 1px solid #284047; border-bottom: 1px solid #284047; }
+    .modes { display: flex; flex-wrap: wrap; gap: 6px; }
+    button { cursor: pointer; border: 1px solid #36535b; border-radius: 3px; background: transparent; color: var(--ink); padding: 10px 14px; min-height: 44px; }
+    button[aria-pressed="true"] { color: #06151b; background: var(--barrier); border-color: var(--barrier); }
+    button:focus-visible, input:focus-visible { outline: 2px solid white; outline-offset: 4px; }
+    .options { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+    label { display: flex; align-items: center; gap: 9px; font-size: 13px; min-height: 44px; }
+    input { accent-color: var(--barrier); }
+    #reset { width: 44px; padding: 0; font-size: 23px; }
+    .layers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; padding-top: 28px; }
+    .layer { border-top: 2px solid var(--tone); padding-top: 16px; }
+    .layer h2 { margin: 0 0 10px; font-size: 17px; font-weight: 500; color: var(--tone); }
+    .layer p { margin: 0; font-size: 14px; line-height: 1.65; color: var(--muted); }
+    .fallback { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; color: var(--muted); }
+    .scene.failed .fallback { display: flex; }
+    .scene.failed canvas { display: none; }
+    @media (max-width: 700px) {
+      .explorer { padding: 24px 20px; }
+      header { align-items: start; flex-direction: column; gap: 14px; }
+      h1 { font-size: 28px; }
+      .scene { height: 400px; }
+      .scene-note { bottom: 12px; }
+      .toolbar { align-items: start; flex-direction: column; }
+      .modes { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layers { grid-template-columns: 1fr; gap: 22px; }
+      .options { width: 100%; justify-content: space-between; gap: 8px; }
+    }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}
+  </script>
+</head>
+<body>
+  <main class="explorer">
+    <header>
+      <div><p class="eyebrow">Labskin</p><h1>Full-thickness human skin model</h1><p class="subtitle">Barrier surface. Living epidermis. Dermal support.</p></div>
+      <p class="schematic">Schematic representation / not to scale</p>
+    </header>
+    <div class="scene" id="scene">
+      <canvas aria-label="Interactive schematic of the stratum corneum, epidermis and dermis"></canvas>
+      <span class="scene-note" id="scene-note">Full-thickness structure</span>
+      <div class="fallback">3D view unavailable. Layer information is available below.</div>
+    </div>
+    <div class="toolbar">
+      <div class="modes" role="group" aria-label="Layer focus">
+        <button data-layer="all" aria-pressed="true">Full thickness</button>
+        <button data-layer="barrier" aria-pressed="false">Barrier</button>
+        <button data-layer="epidermis" aria-pressed="false">Epidermis</button>
+        <button data-layer="dermis" aria-pressed="false">Dermis</button>
+      </div>
+      <div class="options">
+        <label><input type="checkbox" id="separate">Separate layers</label>
+        <label><input type="checkbox" id="motion" checked>Motion</label>
+        <button id="reset" title="Reset view" aria-label="Reset view">&#8634;</button>
+      </div>
+    </div>
+    <section class="layers" aria-label="Model structure">
+      <article class="layer" style="--tone:var(--barrier)"><h2>Stratum corneum</h2><p>A dry outer barrier supporting defined microbial communities. The connected lattice represents surface continuity; its interaction effects are illustrative, not measured tissue responses.</p></article>
+      <article class="layer" style="--tone:var(--epidermis)"><h2>Epidermis</h2><p>The keratinocyte-containing layer appears as a translucent, continuous veil beneath the stratum corneum. Facets suggest tissue organisation, not individual cells.</p></article>
+      <article class="layer" style="--tone:var(--dermis)"><h2>Dermis</h2><p>A deeper fibroblast-containing layer with extracellular matrix, expressed as an open triangular field. The network suggests connective support without depicting individual cells or collagen fibres.</p></article>
+    </section>
+  </main>
+  <script src="./frame-bridge.js"></script>
+  <script type="module" src="./model.js"></script>
+</body>
+</html>
