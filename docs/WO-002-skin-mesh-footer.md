@@ -64,6 +64,9 @@ Out of scope:
 - Current and Evidence menu links use the plain white underline on hover and keyboard focus without changing their resting text colors. The LabSkin-Dev underline remains unchanged.
 - Placed the Mesh label and Insert/Ribbon selector inside the footer as an overlay toolbar; the WebGL mesh remains a positioned canvas layer, not a separate footer component.
 - The Mesh intro block is commented out for future testimonial/client-logo content.
+- The M&C staging host emits `X-Robots-Tag: noindex, nofollow` site-wide through a host-gated WordPress filter; staging `robots.txt` remains crawlable and the Labskin production host is excluded.
+- Converted eight homepage image families plus 26 responsive derivatives to quality-90 WebP (34 outputs); all original/converted files dropped from 9,454,141 to 1,204,402 bytes (87.3%), while full-size assets dropped from 5,018,756 to 513,872 bytes (89.8%). Original uploads remain in place. Homepage attachment metadata/srcsets, header settings, block URLs, and map cover background now reference WebP.
+- Targeted migration rollback data: `/home/ubuntu/homepage-webp-before-20261009.json` and `/home/ubuntu/homepage-webp-map-srcset-20261009.json`.
 - Deployed to the M&C dev/staging site: https://mischiefandcraft.com/footer-lab/?footer=mesh
 - Pre-deploy Lightsail snapshot: `labskin-dev-pre-footer-mesh-20261009` (state: available).
 - WebGL work-session baseline snapshot: `labskin-dev-pre-articulated-mesh-20261009` (state: available). Use one full-instance snapshot per work session; retain unique per-file backups for each deployment iteration.
