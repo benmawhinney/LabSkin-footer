@@ -78,6 +78,18 @@ sudo LABSKIN_WEBP_APPLY=1 LABSKIN_WEBP_BACKUP=/home/ubuntu/homepage-webp-rollbac
 
 The child theme emits `X-Robots-Tag: noindex, nofollow` and WordPress robots directives only when the home host is `mischiefandcraft.com` or `www.mischiefandcraft.com`. Staging `robots.txt` intentionally remains crawlable so search engines can fetch the noindex directive. Do not apply this host guard to Labskin production.
 
+## Work Orders
+
+Work orders live in `docs/WO-*.md`. Each one that is ready to execute also has a GitHub issue labelled `work-order`, which is the queue.
+
+At the start of a session, check the queue:
+
+```sh
+gh issue list --label work-order --state open
+```
+
+Read the linked work order and execute it on the branch it names. Comment on the issue with progress and the staging link. Close the issue when Ben signs off.
+
 ## Staging Deployment Rules
 
 - Use one verified Lightsail snapshot at the beginning of a deployment work session; use unique per-file backups for subsequent iterations in that session.
