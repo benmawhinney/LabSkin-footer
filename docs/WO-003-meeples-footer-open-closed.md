@@ -1,6 +1,6 @@
 # WO-003 - Meeples Footer: Opening Hours, Door Sign, Click-to-Call Phone and After-Hours Bot
 
-**Status:** Ready to execute
+**Status:** Step 0 complete - awaiting Ben's OK before step 1
 **Raised:** Wednesday 14 October 2026, by Ben
 **Branch:** `feature/meeples-footer`
 **Target:** M&C dev/staging only (https://mischiefandcraft.com). Do not touch Labskin production (https://labskin.co.uk).
@@ -41,6 +41,14 @@ The Meeples treatment is already live on M&C staging, but `origin/feature/meeple
 3. Commit whatever is deployed but not yet in the repo ("Record Meeples treatment as deployed on M&C staging"), so this work order starts from the true state.
 
 Report what you found in a few lines and wait for Ben's OK before step 1.
+
+### Step 0 reconciliation - 2026-10-14
+
+- Pulled with a non-rebasing merge (`7ed59fb`) to preserve local deployed-integration commit `a73c4a0` and the two remote work-order/queue commits. The remote-kit-only assumption above described origin before this reconciliation, not the complete local branch.
+- Compared all 28 canonical overlay files against staging using read-only SHA-256 checks: 25 exact byte matches, two line-ending-only differences (`footer.php`, `functions.php`), and one comment-only difference (`assets/js/skin-footer.js`). All eight Meeple integration files matched exactly.
+- Recorded the deployed Fluorescent comments in the canonical overlay and verified syntax and exact normalized parity. All 28 overlay files now represent the deployed behaviour; no staging files or DNS settings were changed in Step 0.
+- The current lab still uses the original 08:15-17:45 staffing ramp and two-person after-hours crew. No 09:00-17:30 schedule, door OPEN/CLOSED sign, click-to-call hotspot or assistant bot has been built yet.
+- Await Ben's explicit OK before starting step 1. Keep GitHub issue #1 open until final owner sign-off.
 
 ## Behaviour to build
 

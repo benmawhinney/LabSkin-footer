@@ -8,13 +8,15 @@
   const TAU = Math.PI * 2;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+  // Periodic, differentiable path: no end-of-loop jump or sudden reversal.
+  // Centres are expressed in source-image fractions, not anatomical coordinates.
   function cameraAt(progress) {
     const a = progress * TAU;
     return {
       x: .50 + .15 * Math.sin(a),
       y: .47 - .16 * Math.cos(a),
       zoom: 1.06 + .46 * (1 - Math.cos(a)) / 2,
-      roll: .048 * Math.sin(a)
+      roll: .048 * Math.sin(a) // <= 2.75 degrees; coherent tissue plane
     };
   }
 
@@ -63,6 +65,7 @@
       const p = cameraAt(progress);
       const iw = image.naturalWidth, ih = image.naturalHeight;
       const cs = Math.cos(p.roll), sn = Math.sin(p.roll);
+      // Inverse-rotated viewport extents: keep all four corners inside image.
       const rw = Math.abs(cs) * width + Math.abs(sn) * height;
       const rh = Math.abs(sn) * width + Math.abs(cs) * height;
       const scale = Math.max(rw / iw, rh / ih) * p.zoom * 1.025;
@@ -89,6 +92,7 @@
       image.style.objectFit = 'fill';
       image.style.transform = matrix(0, width, height);
       if (supported && !restricted()) {
+        // Small keyframe table; browser compositor handles motion, no JS frame loop.
         const keyframes = Array.from({length: 181}, (_, i) => ({
           offset: i / 180, transform: matrix(i / 180, width, height)
         }));
@@ -130,6 +134,7 @@
     const api = {
       play() { paused = false; sync(); },
       pause() { paused = true; sync(); },
+      // Preview/scrubber helper; changing progress also pauses the journey.
       seek(progress) {
         paused = true;
         elapsed = clamp(Number(progress) || 0, 0, 1) * duration;
