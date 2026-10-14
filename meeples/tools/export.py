@@ -9,4 +9,6 @@ with sync_playwright() as p:
         open(f'assets/labskin-meeples-{32*s}.png','wb').write(base64.b64decode(d.split(',')[1]))
     a=pg.evaluate('LabskinSprites.atlas()')
     json.dump(a,open('assets/labskin-meeples.json','w'),indent=1)
+    robot=pg.evaluate('LabskinSprites.makeRobot().toDataURL("image/png")')
+    open('assets/labskin-bot-32.png','wb').write(base64.b64decode(robot.split(',')[1]))
     b.close()

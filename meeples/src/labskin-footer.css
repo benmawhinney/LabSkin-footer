@@ -6,3 +6,11 @@
 .lsf-tip[hidden]{display:none}
 .lsf-tip{max-width:calc(100% - 16px);white-space:normal;line-height:1.35}
 .lsf-scene[data-error] .lsf-canvas{display:none}
+.lsf-hotspot{position:absolute;z-index:3;min-width:44px;min-height:44px;border:0;border-radius:2px;padding:0;background:transparent;cursor:pointer;line-height:1.3;color:#ecfbf6}
+.lsf-hotspot[hidden]{display:none!important}
+.lsf-phone a{display:block;width:100%;height:100%;border-radius:2px}
+.lsf-hotspot:focus-visible,.lsf-phone a:focus-visible{outline:2px solid #a8e6e0;outline-offset:-3px;background:rgba(95,201,196,.12)}
+.lsf-hotspot-label{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);width:180px;max-width:calc(100vw - 24px);padding:6px 8px;border-radius:3px;background:#10272e;color:#ecfbf6;font:600 12px/1.4 sans-serif;pointer-events:none;visibility:hidden}
+.lsf-hotspot:hover .lsf-hotspot-label,.lsf-hotspot:focus-visible .lsf-hotspot-label,.lsf-hotspot:focus-within .lsf-hotspot-label{visibility:visible}
+.lsf-phone .lsf-hotspot-label{left:auto;right:0;transform:none}
+.lsf-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

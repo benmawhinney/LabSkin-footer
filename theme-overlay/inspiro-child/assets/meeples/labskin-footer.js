@@ -20,6 +20,10 @@
     maxPeople: 8,
     minOnScreen: 2
   };
+  DEFAULTS.hours = "Mon-Fri 09:00-17:30";
+  DEFAULTS.phone = "+447387001146";
+  DEFAULTS.contact = "/contact-us-2/";
+  DEFAULTS.bot = null;
   var WMO = function (code) {
     if (code === 0) return { kind: "clear", cloud: 0.05 };
     if (code === 1) return { kind: "clear", cloud: 0.25 };
@@ -36,7 +40,7 @@
 
   // 3x5 pixel font for signs and the wordmark
   var FONT = { A: "010101111101101", B: "110101110101110", E: "111100110100111", I: "111010010010111", K: "101101110101101", L: "100100100100111",
-    M: "101111111101101", N: "110101101101101", O: "111101101101111", R: "110101110101101", S: "011100010001110", T: "111010010010010", " ": "000000000000000" };
+    M: "101111111101101", N: "110101101101101", O: "111101101101111", R: "110101110101101", S: "011100010001110", T: "111010010010010", C: "111100100100111", D: "110101101101110", P: "110101110100100", " ": "000000000000000" };
   function text(g, str, x, y, col, px) {
     px = px || 1; g.fillStyle = col;
     for (var i = 0; i < str.length; i++) { var f = FONT[str[i]] || FONT[" "]; for (var k = 0; k < 15; k++) if (f[k] === "1") g.fillRect(x + (i * 4 + k % 3) * px, y + Math.floor(k / 3) * px, px, px); }
@@ -65,6 +69,22 @@
     return { alt: alt, ha: ha };
   }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function hoursPolicy(value) {
+    var match = /^Mon-Fri (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(value);
+    if (!match || +match[1] > 23 || +match[3] > 23 || +match[2] > 59 || +match[4] > 59) throw new Error("Invalid lab hours: use Mon-Fri HH:MM-HH:MM.");
+    var start = +match[1] * 60 + +match[2], end = +match[3] * 60 + +match[4];
+    if (end <= start) throw new Error("Lab closing time must follow opening time.");
+    return { start: start, end: end };
+  }
+  function isOpen(date, hours, tz) {
+    var parts = londonParts(date, tz), minutes = parts.h * 60 + parts.m;
+    return parts.wd !== "Sat" && parts.wd !== "Sun" && minutes >= hours.start && minutes < hours.end;
+  }
+  function moonPhase(date) {
+    var cycles = (+date - Date.UTC(2000, 0, 6, 18, 14)) / (29.530588853 * 86400000);
+    return cycles - Math.floor(cycles);
+  }
 
   // ---------- science stills for the wall screen (drawn once, 44x24) ----------
   function makeStills() {
@@ -102,6 +122,7 @@
   // ---------- scene ----------
   function Scene(el, opts) {
     this.el = el; this.o = opts;
+    this.hours = hoursPolicy(opts.hours);
     this.cv = document.createElement("canvas"); this.cv.className = "lsf-canvas";
     this.cv.setAttribute("role", "img");
     this.cv.setAttribute("aria-label", "Animated illustration of Labskin scientists fetching supplies from the store, working at the bench, meeting at a table and taking breaks, with today's weather outside the windows");
@@ -115,15 +136,60 @@
     this.doors = { store: 0, brk: 0 }; this.meetT = 20; this.meeting = null;
     this.reduced = root.matchMedia && root.matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.visible = true; this.stills = makeStills();
+    this.openState = null; this.signChanged = -Infinity; this.createHotspots();
   }
   Scene.prototype.now = function () { return this.debugTime == null ? new Date() : new Date(this.debugTime); };
+  Scene.prototype.isOpen = function (date) { return isOpen(date, this.hours, this.o.tz); };
+  Scene.prototype.createHotspots = function () {
+    var self = this, phone = String(this.o.phone).replace(/[^+\d]/g, "");
+    this.phoneHotspot = document.createElement("div");
+    this.phoneHotspot.className = "h-card lsf-hotspot lsf-phone"; this.phoneHotspot.hidden = true;
+    var call = document.createElement("a"); call.className = "p-tel u-tel"; call.href = "tel:" + phone;
+    var display = phone === "+447387001146" ? "+44 (0) 7387 001 146" : phone;
+    call.setAttribute("aria-label", "Call Labskin on " + display);
+    var organisation = document.createElement("span"); organisation.className = "p-name p-org lsf-sr"; organisation.textContent = "Labskin";
+    var number = document.createElement("span"); number.className = "value lsf-sr"; number.textContent = phone;
+    call.appendChild(organisation); call.appendChild(number); this.phoneHotspot.appendChild(call);
+    var phoneLabel = document.createElement("span"); phoneLabel.className = "lsf-hotspot-label"; phoneLabel.textContent = "Call the lab: " + display; this.phoneHotspot.appendChild(phoneLabel);
+    this.botHotspot = document.createElement("button"); this.botHotspot.type = "button";
+    this.botHotspot.className = "lsf-hotspot lsf-assistant"; this.botHotspot.hidden = true;
+    this.botHotspot.setAttribute("aria-label", "Ask the Labskin assistant");
+    var botLabel = document.createElement("span"); botLabel.className = "lsf-hotspot-label"; botLabel.textContent = "The lab is closed. Ask our assistant."; this.botHotspot.appendChild(botLabel);
+    this.botHotspot.addEventListener("click", function () { self.openAssistant(); });
+    this.el.appendChild(this.phoneHotspot); this.el.appendChild(this.botHotspot);
+  };
+  Scene.prototype.openAssistant = function () {
+    var self = this, hub = root.HubSpotConversations, widget = hub && hub.widget;
+    function fallback() { root.location.assign(self.o.contact); }
+    if (!widget || typeof widget.open !== "function") { fallback(); return; }
+    if (!widget.status || widget.status().loaded) { widget.open(); return; }
+    if (!widget.load || !hub.on) { fallback(); return; }
+    this.botHotspot.disabled = true; this.botHotspot.setAttribute("aria-busy", "true");
+    var timer, finished = false;
+    function cleanup() { clearTimeout(timer); if (hub.off) hub.off("widgetLoaded", ready); self.botHotspot.disabled = false; self.botHotspot.removeAttribute("aria-busy"); }
+    function ready() { if (finished) return; finished = true; cleanup(); widget.open(); }
+    hub.on("widgetLoaded", ready);
+    timer = setTimeout(function () { if (finished) return; finished = true; cleanup(); fallback(); }, 8000);
+    try { widget.load(); if (widget.status().loaded) ready(); } catch (error) { finished = true; cleanup(); fallback(); }
+  };
+  Scene.prototype.placeHotspot = function (element, box) {
+    var width = this.el.clientWidth, scaleX = width / this.rowWidth, floor = this.stacked && box.x + box.w / 2 >= this.rowWidth ? 1 : 0;
+    var centreX = (box.x + box.w / 2 - floor * this.rowWidth) * scaleX;
+    var centreY = (box.y + box.h / 2 + floor * (this.H + 8)) * this.o.scale;
+    var sizeX = Math.max(44, box.w * scaleX), sizeY = Math.max(44, box.h * this.o.scale);
+    element.style.width = sizeX + "px"; element.style.height = sizeY + "px";
+    element.style.left = clamp(centreX - sizeX / 2, 0, width - sizeX) + "px";
+    element.style.top = clamp(centreY - sizeY / 2, 0, this.outputHeight * this.o.scale - sizeY) + "px";
+  };
   Scene.prototype.load = function () {
     var self = this, o = this.o;
     var atlasP = o.atlas && typeof o.atlas === "object" ? Promise.resolve(o.atlas) : fetch(o.atlasUrl).then(function (r) { return r.json(); });
     var img = function (src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); };
     var logoP = o.logo ? img(o.logo).catch(function () { return null; }) : Promise.resolve(null);
-    return Promise.all([atlasP, img(o.spritesUrl), logoP]).then(function (r) {
+    var botP = o.bot ? img(o.bot).catch(function () { return null; }) : Promise.resolve(null);
+    return Promise.all([atlasP, img(o.spritesUrl), logoP, botP]).then(function (r) {
       self.cell = r[0].cell || 32; self.people = r[0].people.slice(); self.sheet = r[1]; self.logo = r[2];
+      self.bot = r[3];
       self.mirror = document.createElement("canvas"); self.mirror.width = self.sheet.width; self.mirror.height = self.sheet.height;
       var m = self.mirror.getContext("2d"); m.translate(self.sheet.width, 0); m.scale(-1, 1); m.drawImage(self.sheet, 0, 0);
     });
@@ -169,6 +235,13 @@
       x += w2 + 14 + Math.round(rnd() * 12); k++;
     }
     this.maxPeople = Math.max(o.minOnScreen, Math.min(o.maxPeople, this.people.length, Math.floor(W / 50)));
+    var computer = this.equip.find(function (equipment) { return equipment.kind === "pc"; });
+    if (!computer) {
+      var spare = this.equip[this.equip.length - 1];
+      if (spare) this.botComputer = { kind: "pc", x: spare.x, w: 18, station: spare.station, phase: 0 };
+    } else this.botComputer = computer;
+    this.phoneArt = { x: this.table.x + 2, y: this.floorY - 20, w: 12, h: 9 };
+    this.botArt = { x: (this.botComputer ? this.botComputer.station : this.benchX0 + 12) - 16, y: this.feetY - 30, w: 32, h: 32 };
     this.clouds = []; for (var c = 0; c < Math.ceil(W / 50); c++) this.clouds.push({ x: rnd() * W, y: 3 + rnd() * 12, s: 0.6 + rnd() * 0.8 });
     this.stars = []; for (var s2 = 0; s2 < W / 5; s2++) this.stars.push({ x: rnd() * W, y: rnd() * 22, t: rnd() * 6 });
     if (this.agents.length) this.reseed();
@@ -176,12 +249,36 @@
 
   // ---------- staffing ----------
   Scene.prototype.targetCount = function (date) {
-    var p = londonParts(date, this.o.tz), t = p.h + p.m / 60, weekend = p.wd === "Sat" || p.wd === "Sun", M = this.maxPeople, min = this.o.minOnScreen;
-    if (weekend || t < 8.25 || t >= 17.75) return min;   // a skeleton crew keeps the cultures going
-    var f = 1;
-    if (t < 9.25) f = t - 8.25;
-    if (t >= 16.75) f = 1 - (t - 16.75);
-    return Math.max(min, Math.round(M * clamp(f, 0, 1)));
+    if (!this.isOpen(date)) return 0;
+    var p = londonParts(date, this.o.tz), elapsed = p.h * 60 + p.m - this.hours.start;
+    return Math.max(this.o.minOnScreen, Math.round(this.maxPeople * clamp(elapsed / 60, 0, 1)));
+  };
+  Scene.prototype.syncBusiness = function (date) {
+    var open = this.isOpen(date), self = this;
+    if (open !== this.openState) {
+      var previous = this.openState; this.openState = open; this.signChanged = performance.now();
+      if (!open) this.agents.forEach(function (agent, index) { agent.closingDelay = 15 + index * 12; });
+      else {
+        this.agents.forEach(function (agent) { agent.leaving = false; agent.closingDelay = null; });
+        if (previous === false) {
+          var rota = this.rota(date);
+          while (this.agents.filter(function (agent) { return !agent.hidden; }).length < this.o.minOnScreen) {
+            var person = rota.find(function (person) { return !self.agents.some(function (agent) { return agent.p === person; }); });
+            if (!person) break;
+            this.agents.push({ p: person, x: this.doorX("brk") - this.agents.length * 8, dir: -1, t: 0, energy: 2, state: "idle", timer: 0.5, hidden: null });
+            this.openDoor("brk");
+          }
+        }
+      }
+    }
+    this.el.setAttribute("data-open", String(open));
+    if (!open && this.reduced && this.agents.length) {
+      this.agents.forEach(function (agent) { self.release(agent); });
+      this.agents = []; this.meeting = null;
+    }
+    this.phoneHotspot.hidden = !open;
+    this.botHotspot.hidden = open;
+    return open;
   };
   Scene.prototype.rota = function (date) {
     var p = londonParts(date, this.o.tz);
@@ -191,7 +288,7 @@
     this._rotaDay = p.ymd; this._rota = list; return list;
   };
   Scene.prototype.onScreen = function (except) { return this.agents.filter(function (a) { return a !== except && !a.hidden && !a.hiding; }).length; };
-  Scene.prototype.canHide = function (a) { return this.onScreen(a) >= this.o.minOnScreen; };
+  Scene.prototype.canHide = function (a) { return !this.openState || this.onScreen(a) >= this.o.minOnScreen; };
   Scene.prototype.freeStation = function () { var f = this.equip.filter(function (e) { return !e.busy; }); return f.length ? pick(f) : null; };
   Scene.prototype.release = function (a) { if (a.station) { a.station.busy = null; a.station = null; } if (a.seat) { a.seat.busy = null; a.seat = null; } };
   Scene.prototype.doorX = function (which) { return (which === "store" ? this.storeX : this.breakX) + 11; };
@@ -199,6 +296,10 @@
   // what to do next: store run, bench work, or a break
   Scene.prototype.decide = function (a) {
     this.release(a);
+    if (!this.openState) {
+      if (a.closingDelay > 0) { a.state = "idle"; a.timer = a.closingDelay; a.label = "Finishing for the day"; return; }
+      a.leaving = true; return this.walkTo(a, this.doorX("brk"), "exit");
+    }
     if (a.leaving && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "exit"); }
     if (a.leaving) a.leaving = false;
     if (a.energy <= 0 && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "break"); }
@@ -233,17 +334,18 @@
   // ---------- simulation ----------
   Scene.prototype.step = function (dt, date) {
     var self = this, speed = 20;
+    var open = this.syncBusiness(date);
     // staffing: arrivals come in from the break room (coats and lockers), leavers go out the same way
     var want = this.targetCount(date), present = this.agents.filter(function (a) { return !a.leaving; });
     if (present.length < want && !this.agents.some(function (a) { return a.state === "walk" && Math.abs(a.x - self.doorX("brk")) < 14; })) {
       var rota = this.rota(date), next = rota.find(function (p) { return !self.agents.some(function (a) { return a.p === p; }); });
       if (next) { var a0 = { p: next, x: this.doorX("brk"), dir: -1, t: 0, energy: 2 + Math.floor(Math.random() * 3), state: "idle", timer: 0.3, hidden: null }; this.openDoor("brk"); this.agents.push(a0); }
-    } else if (present.length > want) {
+    } else if (open && present.length > want) {
       var cand = present.filter(function (a) { return a.state !== "meet"; }).pop(); if (cand) { cand.leaving = true; if (cand.state !== "hidden") this.decide(cand); }
     }
     // meetings behind the glass wall: two or three people, every so often
     this.meetT -= dt;
-    if (!this.meeting && this.meetT <= 0) {
+    if (open && !this.meeting && this.meetT <= 0) {
       var free = this.agents.filter(function (a) { return !a.hidden && !a.hiding && !a.leaving && (a.state === "work" || a.state === "idle"); });
       var n = Math.min(this.seats.length, free.length >= 3 && Math.random() < 0.5 ? 3 : 2);
       if (free.length >= 2) {
@@ -261,6 +363,11 @@
     }
     this.agents.forEach(function (a) {
       a.t += dt;
+      if (!open && !a.leaving) {
+        a.closingDelay = Math.max(0, (a.closingDelay || 0) - dt);
+        if (!a.closingDelay && a.state === "meet") { self.release(a); a.state = "idle"; a.timer = 0; }
+        if (!a.closingDelay && (a.state === "idle" || (a.state === "work" && a.timer <= dt))) a.leaving = true;
+      }
       if (a.state === "hidden") {
         a.timer -= dt;
         if (a.timer <= 0) { if (a.leaving && a.hidden === "brk") { a.gone = true; return; } self.emerge(a, a.hidden); }
@@ -305,6 +412,7 @@
   // ---------- drawing ----------
   Scene.prototype.draw = function (date, tms) {
     var g = this.g, W = this.W, H = this.H, o = this.o, w = this.weather, self = this;
+    var open = this.syncBusiness(date);
     g.clearRect(0, 0, W, H);
     var s = sun(date, o.lat, o.lon), alt = s.alt, day = clamp((alt + 6) / 14, 0, 1), dusk = clamp(1 - Math.abs(alt - 1) / 7, 0, 1), grey = w.cloud || 0;
     // --- windows: the sky is one continuous painting seen through each pane
@@ -315,7 +423,17 @@
     if (day < 0.5 && grey < 0.7) { g.fillStyle = "rgba(255,255,255," + (0.8 * (1 - day * 2) * (1 - grey)) + ")"; this.stars.forEach(function (st) { if (Math.sin(tms / 700 + st.t) > -0.6) g.fillRect(st.x | 0, st.y | 0, 1, 1); }); }
     var bx = W * (0.5 + s.ha / 240);
     if (alt > -4) { var sy = 22 - clamp(alt, -4, 45) * 0.42; g.globalAlpha = 1 - grey * 0.8; g.fillStyle = mix("#ffd27a", "#fff3c4", clamp(alt / 30, 0, 1)); g.fillRect((bx | 0) - 3, (sy | 0) - 3, 7, 7); g.fillRect((bx | 0) - 4, (sy | 0) - 2, 9, 5); g.globalAlpha = 1; }
-    else { var mx = (bx + W / 2) % W; g.globalAlpha = 1 - grey * 0.7; g.fillStyle = "#f2f0e2"; g.fillRect((mx | 0) - 2, 6, 6, 7); g.fillStyle = top; g.fillRect((mx | 0) + 1, 6, 3, 5); g.globalAlpha = 1; }
+    else {
+      var phase = moonPhase(date), moonX = this.windows[0] ? this.windows[0].x + 24 : W / 3;
+      g.globalAlpha = 1 - grey * 0.7;
+      for (var moonY = -4; moonY <= 4; moonY++) for (var moonPixel = -4; moonPixel <= 4; moonPixel++) {
+        if (moonPixel * moonPixel + moonY * moonY > 16) continue;
+        var edge = Math.sqrt(Math.max(0, 16 - moonY * moonY)), terminator = Math.cos(phase * Math.PI * 2) * edge;
+        var lit = phase <= 0.5 ? moonPixel >= terminator : moonPixel <= -terminator;
+        g.fillStyle = lit ? "#f2f0e2" : "#26344f"; g.fillRect(Math.round(moonX) + moonPixel, 8 + moonY, 1, 1);
+      }
+      g.globalAlpha = 1;
+    }
     var cc = Math.round(this.clouds.length * grey);
     for (var i = 0; i < cc; i++) { var c = this.clouds[i], cx = c.x | 0, cy = c.y | 0, sc = c.s; g.fillStyle = mix(mix("#3a4560", "#ffffff", day), "#9aa3ab", grey * 0.6); g.fillRect(cx, cy, 22 * sc | 0, 4); g.fillRect(cx + 4, cy - 2, 12 * sc | 0, 3); }
     if (this.particles.length) { g.fillStyle = w.kind === "snow" ? "rgba(255,255,255,.9)" : "rgba(200,220,240,.75)"; this.particles.forEach(function (p) { g.fillRect(p.x | 0, p.y | 0, 1, w.kind === "snow" ? 1 : 3); }); }
@@ -380,6 +498,36 @@
     this.seats.forEach(function (z) { g.fillStyle = "#3c4c53"; g.fillRect(z.x - 4, ty + 3, 8, 2); g.fillRect(z.x - 3, ty + 5, 1, self.floorY - ty - 5); g.fillRect(z.x + 2, ty + 5, 1, self.floorY - ty - 5); });
     // --- one-pixel floor line
     g.fillStyle = "#4d6670"; g.fillRect(0, this.floorY, W, 1);
+    if (!open) {
+      g.fillStyle = "rgba(3,10,16,.56)"; g.fillRect(0, 26, W, H - 26);
+      this.equip.forEach(function (equipment) {
+        if (equipment.kind === "pc") { g.fillStyle = "#f2b84b"; g.fillRect(equipment.x + 13, self.benchTop - 5, 1, 1); }
+        if (equipment.kind === "incub" || equipment.kind === "centri") { g.fillStyle = "#5fd3b3"; g.fillRect(equipment.x + equipment.w - 5, self.benchTop - 6, 1, 1); }
+      });
+      if (this.botComputer) {
+        this.drawEquip(this.botComputer, tms, true);
+        var idle = this.reduced ? 0 : Math.floor(tms / 900) % 2;
+        if (this.bot) {
+          g.drawImage(this.bot, this.botArt.x, this.botArt.y - idle, 32, 32);
+          g.fillStyle = this.reduced || Math.floor(tms / 1000) % 2 === 0 ? "#77d22d" : "#315b22";
+          g.fillRect(this.botArt.x + 18, this.botArt.y + 2 - idle, 1, 1);
+        }
+      }
+    } else {
+      var phone = this.phoneArt;
+      g.fillStyle = "#1e2a2e"; g.fillRect(phone.x, phone.y + 3, 12, 6); g.fillRect(phone.x - 1, phone.y, 14, 3);
+      g.fillStyle = "#cfd8db"; g.fillRect(phone.x, phone.y + 1, 4, 2); g.fillRect(phone.x + 8, phone.y + 1, 4, 2);
+      g.fillStyle = "#5fd3b3"; g.fillRect(phone.x + 4, phone.y + 4, 4, 2);
+    }
+    var sign = open ? "OPEN" : "CLOSED", signWidth = sign.length * 4 + 3;
+    var signX = clamp(this.breakX + 11 - signWidth / 2, this.stacked ? this.rowWidth + 1 : 1, W - signWidth - 1);
+    var swing = !this.reduced && performance.now() - this.signChanged < 250 ? 1 : 0;
+    g.fillStyle = open ? "#2f8f6f" : "#a53b42"; g.fillRect(Math.round(signX), this.floorY - 31 + swing, signWidth, 7);
+    text(g, sign, Math.round(signX) + 2, this.floorY - 30 + swing, "#ecfbf6");
+    this.el.setAttribute("data-sign", sign);
+    this.el.setAttribute("data-moon-phase", moonPhase(date).toFixed(3));
+    this.el.setAttribute("data-lights", open ? "on" : "standby");
+    this.placeHotspot(this.phoneHotspot, this.phoneArt); this.placeHotspot(this.botHotspot, this.botArt);
     this.output.clearRect(0, 0, this.rowWidth, this.outputHeight);
     this.output.drawImage(this.stage, 0, 0, this.rowWidth, H, 0, 0, this.rowWidth, H);
     if (this.stacked) this.output.drawImage(this.stage, this.rowWidth, 0, this.rowWidth, H, 0, H + 8, this.rowWidth, H);
@@ -404,6 +552,7 @@
     var g = this.g, sc = this.screen, x = sc.x, y = sc.y, w = sc.w, h = sc.h;
     g.fillStyle = "#1a2328"; g.fillRect(x - 2, y - 2, w + 4, h + 4); g.fillStyle = "#2b3a40"; g.fillRect(x + w / 2 - 1, y + h + 2, 2, 3);
     g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    if (!this.openState) { g.fillStyle = "#071014"; g.fillRect(x, y, w, h); g.fillStyle = "#f2b84b"; g.fillRect(x + w - 2, y + h - 2, 1, 1); g.restore(); return; }
     var slides = 1 + this.stills.length, period = 6000, t = this.reduced ? 0 : tms % (period * slides);
     var idx = Math.floor(t / period), within = t % period, slide = within > period - 600 ? (within - (period - 600)) / 600 : 0;
     var self = this;
@@ -424,7 +573,7 @@
     if (k === "hood") { g.fillStyle = "#d9e0e4"; g.fillRect(x, y - 26, e.w, 26); g.fillStyle = "#b9c6cc"; g.fillRect(x, y - 26, e.w, 4); g.fillStyle = "rgba(150,205,235,.7)"; g.fillRect(x + 3, y - 19, e.w - 6, 15); g.fillStyle = "#f2b84b"; g.fillRect(x + e.w - 6, y - 25, 2, 2); if (e.busy) { g.fillStyle = "#ff8a65"; g.fillRect(x + 9, y - 7, 2, 4); g.fillStyle = "#5fd3b3"; g.fillRect(x + 15, y - 6, 3, 3); } }
     if (k === "scope") { g.fillStyle = "#cfd8db"; g.fillRect(x + 4, y - 4, 8, 4); g.fillRect(x + 7, y - 15, 3, 11); g.fillRect(x + 5, y - 17, 6, 3); g.fillStyle = "#93a3ad"; g.fillRect(x + 2, y - 9, 6, 2); }
     if (k === "rack") { var cols = ["#f2b84b", "#ff8a65", "#5fd3b3", "#9ec9e8"]; g.fillStyle = "#b9c6cc"; g.fillRect(x, y - 3, e.w, 3); for (var i = 0; i < e.w / 4; i++) { g.fillStyle = cols[(i + (x | 0)) % 4]; g.fillRect(x + 1 + i * 4, y - 9, 2, 6); } }
-    if (k === "pc") { g.fillStyle = "#cfd8db"; g.fillRect(x + 2, y - 15, 14, 11); g.fillRect(x + 8, y - 4, 2, 4); g.fillStyle = e.busy ? (on ? "#7fc8e8" : "#9fd9c6") : "#24323a"; g.fillRect(x + 3, y - 14, 12, 8); }
+    if (k === "pc") { g.fillStyle = "#cfd8db"; g.fillRect(x + 2, y - 15, 14, 11); g.fillRect(x + 8, y - 4, 2, 4); g.fillStyle = this.openState ? (e.busy ? (on ? "#7fc8e8" : "#9fd9c6") : "#24323a") : (e === this.botComputer ? "#5fd3b3" : "#071014"); g.fillRect(x + 3, y - 14, 12, 8); if (!this.openState) { g.fillStyle = e === this.botComputer ? "#5fd3b3" : "#f2b84b"; g.fillRect(x + 13, y - 5, 1, 1); } }
     if (k === "incub") { g.fillStyle = "#cfd6db"; g.fillRect(x, y - 22, e.w, 22); g.fillStyle = "#9aa7b0"; g.fillRect(x + 2, y - 19, e.w - 4, 16); g.fillStyle = "#5fd3b3"; g.fillRect(x + e.w - 6, y - 21, 3, 1); g.fillStyle = "#f2b84b"; g.fillRect(x + 4, y - 21, 5, 1); }
     if (k === "centri") { g.fillStyle = "#e3e7ea"; g.fillRect(x, y - 9, e.w, 9); g.fillStyle = "#56637a"; g.fillRect(x + 2, y - 11, e.w - 4, 2); if (e.busy && on) { g.fillStyle = "#5fd3b3"; g.fillRect(x + e.w - 4, y - 6, 2, 2); } }
     void lights;
@@ -459,6 +608,7 @@
       else { a.x = this.glassX + 20 + i * 4; a.timer = 1; }
       this.agents.push(a);
     }
+    this.syncBusiness(date0);
   };
 
   // ---------- loop ----------
@@ -473,7 +623,12 @@
       var d = self.now();
       if (!self.reduced) self.step(dt, d);
       self.draw(d, t);
-      if (self.reduced) { self.timer = setTimeout(function () { self.timer = null; self.resume(); }, 30000); return; }
+      if (self.reduced) {
+        var parts = londonParts(d, self.o.tz), minutes = parts.h * 60 + parts.m;
+        var boundary = parts.wd === "Sat" || parts.wd === "Sun" ? 1440 : minutes < self.hours.start ? self.hours.start : minutes < self.hours.end ? self.hours.end : 1440;
+        var delay = Math.max(20, Math.min(30000, (boundary - minutes) * 60000 - d.getSeconds() * 1000 - d.getMilliseconds()));
+        self.timer = setTimeout(function () { self.timer = null; self.resume(); }, delay); return;
+      }
       self.raf = requestAnimationFrame(tick);
     }
     this.pause = function () { if (self.raf) cancelAnimationFrame(self.raf); if (self.timer) clearTimeout(self.timer); self.raf = null; self.timer = null; };
@@ -502,6 +657,10 @@
     var ds = el.dataset || {};
     if (ds.lat) o.lat = +ds.lat; if (ds.lon) o.lon = +ds.lon; if (ds.labels) o.labels = ds.labels; if (ds.weather) o.weather = ds.weather;
     if (ds.scale) o.scale = +ds.scale; if (ds.maxPeople) o.maxPeople = +ds.maxPeople; if (ds.logo) o.logo = ds.logo;
+    if (ds.lsfHours || ds.hours) o.hours = ds.lsfHours || ds.hours;
+    if (ds.lsfPhone || ds.phone) o.phone = ds.lsfPhone || ds.phone;
+    if (ds.lsfContact || ds.contact) o.contact = ds.lsfContact || ds.contact;
+    if (ds.lsfBot || ds.bot) o.bot = ds.lsfBot || ds.bot;
     o.spritesUrl = ds.sprites; o.atlasUrl = ds.atlas;
     if (opts) Object.keys(opts).forEach(function (k) { o[k] = opts[k]; });
     var s = new Scene(el, o); scenes.push(s);
@@ -511,12 +670,13 @@
   function auto() { Array.prototype.forEach.call(document.querySelectorAll(".lsf-scene[data-sprites]"), function (el) { if (!el.__lsf) el.__lsf = mount(el); }); }
   root.LabskinFooter = {
     mount: mount,
+    isOpen: function (date, hours, tz) { return isOpen(new Date(date), hoursPolicy(hours || DEFAULTS.hours), tz || DEFAULTS.tz); },
     debug: function (cfg) { // previews only: { time: Date|number|null, speed: number, weather: "rain"|…|"live" }
       scenes.forEach(function (s) {
         if ("time" in cfg) { s.debugTime = cfg.time == null ? null : +new Date(cfg.time); if (s.equip) s.reseed(); }
         if (cfg.speed) s.timeScale = cfg.speed;
         if (cfg.weather) { if (cfg.weather === "live") { s.o.weather = "live"; s.fetchWeather(); } else s.applyWeather({ code: PRESETS[cfg.weather], wind: 14 }); }
-        if (s.resume) s.resume();
+        if (s.resume) { s.pause(); s.resume(); }
       });
     },
     scenes: scenes

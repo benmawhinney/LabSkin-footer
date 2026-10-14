@@ -35,7 +35,11 @@ https://mischiefandcraft.com/footer-lab/?footer=mesh
 
 The homepage footer now offers Current, LabSkin-Dev, Evidence, Fluorescent, Mesh, and MEEPLE. Its blueprint-backed selector is explicitly marked as prototype-only; non-homepage routes retain the standard footer. The LabSkin-Dev treatment includes the SCS Formulate banner between its content and legal row. The Fluorescent camera runs automatically without the scrubber/view controls. Mesh defaults to Insert with its shape controls commented out. The separate Footer Lab route remains available for review.
 
-MEEPLE is available at `https://mischiefandcraft.com/?footer=meeples` and on the Footer Lab route. It duplicates Current's live footer content, with the transparent pixel-art laboratory beneath it. Its runtime, stylesheet, team atlas and sprites load only on selection. Desktop uses one floor; scene widths below 700px use two floors, with scientists passing through LAB doors via offscreen stairs. The original palette, 17-person atlas and sprite sheet are unchanged. Staffing follows Europe/London lab hours and preserves at least two visible scientists. Hover labels remain enabled for review.
+MEEPLE is available at `https://mischiefandcraft.com/?footer=meeples` and on the Footer Lab route. It duplicates Current's live footer content, with the transparent pixel-art laboratory beneath it. Its runtime, stylesheet, team atlas and sprites load only on selection. Desktop uses one floor; scene widths below 700px use two floors, with scientists passing through LAB doors via offscreen stairs. The original 17-person atlas and team sprite sheet are unchanged. The lab opens Monday-Friday, 09:00-17:30 in Europe/London, with at least two visible scientists while open. Staff finish and leave gradually after closing; closed loads show only the separate robot, not a skeleton crew. Bank holidays are not modelled. Hover labels remain enabled for review.
+
+WO-003 adds an OPEN/CLOSED break-room sign, an open-hours 44px-minimum click-to-call h-card (`tel:+447387001146`), and a closed-hours keyboard-accessible assistant button. Phone, contact URL and hours are configurable via `data-lsf-phone`, `data-lsf-contact`, and `data-lsf-hours`; the supported hours format is `Mon-Fri HH:MM-HH:MM`. The separate orange 32px robot is generated from `meeples/tools/sprite-gen.js`, inspired by the supplied Slack avatar; the team sheet is not changed. Closed computers are dark with amber standby LEDs, except the bot workstation; the wall display is in standby. Windows retain the real sky/weather, with stars and an approximate mean-synodic-cycle lunar phase at night. Clouds may obscure celestial features; the moon's window position is illustrative.
+
+The assistant opens the existing HubSpot widget when ready, or loads it and waits for `widgetLoaded`. Missing/unavailable chat falls back to the clean Contact Us page. At verification time the staging page had no real HubSpot widget, so contact fallback is active; ready/lazy chat behaviour was verified with API stubs. No chat script or account configuration was added.
 
 Weather is a browser request to Open-Meteo for Wetherby, cached locally for 20 minutes; no analytics or third-party script is added. API failure keeps the default sky. Animation pauses when hidden/offscreen; reduced motion displays a still frame every 30 seconds. The 44x13 wall-screen logo is generated from the existing white Labskin logo with nearest-neighbour scaling. Scientific stills and pixel scenes are illustrative.
 
@@ -53,6 +57,8 @@ node --check theme-overlay/inspiro-child/assets/js/footer-mesh.js
 node --check theme-overlay/inspiro-child/assets/js/footer-lab-preview-animation.js
 node --check meeples/src/labskin-footer.js
 node --check theme-overlay/inspiro-child/assets/meeples/labskin-footer.js
+node --check meeples/tools/sprite-gen.js
+node --test meeples/tests/opening-hours.test.cjs
 ```
 
 The footer Mesh module loads when the Mesh treatment is selected. It uses WebGL2, one draw call, and a CSS fallback. The supplied brief and work order record current limitations and outstanding physical-device checks.

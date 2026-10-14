@@ -52,6 +52,8 @@
 					const asset = document.createElement(name.endsWith('.css') ? 'link' : 'script');
 					const url = new URL(name, base);
 					url.search = currentScriptUrl.search;
+					const version = root.closest('[data-meeples-version]')?.dataset.meeplesVersion;
+					if (version) url.searchParams.set('ver', version);
 					if (name.endsWith('.css')) {
 						asset.rel = 'stylesheet';
 						asset.href = url.href;

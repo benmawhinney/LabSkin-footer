@@ -1,6 +1,6 @@
 # WO-003 - Meeples Footer: Opening Hours, Door Sign, Click-to-Call Phone and After-Hours Bot
 
-**Status:** Step 0 complete - awaiting Ben's OK before step 1
+**Status:** Implemented on M&C staging - awaiting Ben's final sign-off
 **Raised:** Wednesday 14 October 2026, by Ben
 **Branch:** `feature/meeples-footer`
 **Target:** M&C dev/staging only (https://mischiefandcraft.com). Do not touch Labskin production (https://labskin.co.uk).
@@ -48,7 +48,16 @@ Report what you found in a few lines and wait for Ben's OK before step 1.
 - Compared all 28 canonical overlay files against staging using read-only SHA-256 checks: 25 exact byte matches, two line-ending-only differences (`footer.php`, `functions.php`), and one comment-only difference (`assets/js/skin-footer.js`). All eight Meeple integration files matched exactly.
 - Recorded the deployed Fluorescent comments in the canonical overlay and verified syntax and exact normalized parity. All 28 overlay files now represent the deployed behaviour; no staging files or DNS settings were changed in Step 0.
 - The current lab still uses the original 08:15-17:45 staffing ramp and two-person after-hours crew. No 09:00-17:30 schedule, door OPEN/CLOSED sign, click-to-call hotspot or assistant bot has been built yet.
-- Await Ben's explicit OK before starting step 1. Keep GitHub issue #1 open until final owner sign-off.
+- Ben approved proceeding after Step 0 on 2026-10-14. Keep GitHub issue #1 open until final owner sign-off.
+
+### Implementation and verification - 2026-10-14
+
+- Implemented the weekday 09:00-17:30 UK schedule, OPEN/CLOSED sign, open-hours phone h-card and closed-hours assistant hotspot. Normal-motion staff finish tasks and depart over a few minutes; reduced-motion closed frames and closed loads are bot-only. The two-person rule applies only while open.
+- Added the supplied avatar-inspired orange 32px robot as a separate transparent asset, with green eyes, antennae, notebook/pen and a subtle activity light. The generator/exporter supports it; original team sprite/atlas bytes are unchanged.
+- Closed ordinary computers have dark screens and amber standby LEDs. Only the robot workstation stays active; the wall display goes to standby. Stars and an approximate date-based lunar phase appear under suitable night weather.
+- Verified all requested debug times, BST/GMT scheduling, live closing/reopening, actual h-card parsing, native Tab/Enter and visible focus, 44px-minimum phone/bot targets at 320-1440px, reduced-motion state changes, all six treatments and mount-once behaviour.
+- The staging page has no real HubSpot widget at verification time. Its bot uses the verified clean contact-page fallback; ready-widget and lazy-widget load/open paths were checked with API stubs. No HubSpot script/account setup was added.
+- Reused available session snapshot `labskin-pre-meeple-footer-20261014`. New per-file backups use `.bak-wo003-20261014-193534` for runtime, CSS, switcher and partial. No Labskin production changes. Bank holidays and optional extra interactions remain out of scope.
 
 ## Behaviour to build
 

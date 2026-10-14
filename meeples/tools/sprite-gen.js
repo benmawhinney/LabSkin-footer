@@ -125,5 +125,26 @@
     return { cell: 32, columns: COLS, facing: "walk frames face right; mirror horizontally to walk left",
       people: TEAM.map(person).map(function (p, i) { return { row: i, name: p.name, first: p.first, role: p.role, outfit: p.outfit, glasses: p.glasses }; }) };
   }
-  root.LabskinSprites = { makeSheet: makeSheet, atlas: atlas, TEAM: TEAM, COLS: COLS };
+  function makeRobot() {
+    var canvas = document.createElement("canvas"); canvas.width = 32; canvas.height = 32;
+    var graphics = canvas.getContext("2d");
+    function block(x, y, width, height, colour) { graphics.fillStyle = colour; graphics.fillRect(x, y, width, height); }
+    block(8, 0, 2, 5, "#713700"); block(22, 0, 2, 5, "#713700");
+    block(8, 0, 1, 3, "#ffb548"); block(23, 0, 1, 3, "#ffb548");
+    block(7, 5, 18, 11, "#713700"); block(5, 8, 22, 6, "#713700");
+    block(8, 4, 16, 11, "#f58c10"); block(6, 8, 20, 5, "#f58c10");
+    block(10, 4, 12, 1, "#ffcd69"); block(7, 7, 2, 2, "#ffb548");
+    block(9, 8, 14, 6, "#11201b"); block(11, 9, 3, 3, "#77d22d"); block(19, 9, 3, 3, "#77d22d");
+    block(7, 16, 18, 12, "#713700"); block(8, 16, 16, 11, "#f58c10"); block(8, 16, 16, 1, "#ffcd69");
+    block(14, 18, 4, 5, "#ffe2a0"); block(13, 20, 6, 1, "#ffe2a0");
+    block(3, 17, 5, 9, "#713700"); block(4, 17, 4, 8, "#ee7a09"); block(4, 18, 1, 3, "#ffb548");
+    block(24, 17, 5, 9, "#713700"); block(24, 18, 4, 6, "#ee7a09");
+    block(9, 28, 5, 4, "#713700"); block(18, 28, 5, 4, "#713700");
+    block(10, 28, 3, 3, "#f58c10"); block(19, 28, 3, 3, "#f58c10");
+    block(14, 24, 15, 5, "#3d291c"); block(15, 24, 6, 2, "#ffe2a0"); block(22, 23, 7, 2, "#ffe2a0");
+    block(16, 26, 5, 2, "#925b2c"); block(23, 25, 6, 2, "#925b2c"); block(21, 24, 1, 5, "#ffcd69");
+    block(8, 19, 1, 2, "#11201b"); block(9, 21, 1, 2, "#11201b"); block(10, 23, 1, 2, "#5fc9c4");
+    return canvas;
+  }
+  root.LabskinSprites = { makeSheet: makeSheet, makeRobot: makeRobot, atlas: atlas, TEAM: TEAM, COLS: COLS };
 })(window);
