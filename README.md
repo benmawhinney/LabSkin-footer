@@ -23,7 +23,7 @@ The WordPress child theme mirror used for the M&C staging deployment is not a co
 - `scripts/migrate-homepage-images-to-webp.php` - Dry-run-first WordPress reference/attachment metadata migration with a targeted rollback JSON.
 - `meeples/` - Meeples footer kit: pixel-art lab strip runtime, team sprite sheets, sprite generator, demo, preview and the VS Code integration prompt (`meeples/VSCODE_PROMPT.md`). Not yet integrated into `theme-overlay/`.
 - `reference/` - supplied LabSkin marketing-flow stills.
-- `docs/` - design brief and implementation work order.
+- `docs/` - design brief and work orders (`WO-002` skin mesh, `WO-003` Meeples opening hours, phone and after-hours bot).
 
 ## Prototype
 
