@@ -21,7 +21,8 @@
 		mesh: 'Showing the enhanced mesh footer built from the live child-theme layout.',
 		preview: 'Showing the cleaned Evidence in every layer animated concept.',
 		fluorescent: 'Showing the animated fluorescent concept with live footer content and motion controls.',
-		github: 'Showing the LabSkin-Dev repo footer with live footer menus and social links.'
+		github: 'Showing the LabSkin-Dev repo footer with live footer menus and social links.',
+		meeples: 'Showing the Meeples lab strip: scientists at the bench with live Wetherby day, night and weather.'
 	};
 
 	let previewMounted = false;
@@ -30,6 +31,53 @@
 	let fluorescentApi = null;
 	let meshApi = null;
 	let meshImporting = false;
+	let meeplesAssets = null;
+	let meeplesApi = null;
+
+	function mountMeeplesPanel() {
+		const panel = shell.querySelector('[data-footer-panel="meeples"]');
+		const root = panel?.querySelector('.lsf-scene');
+		if (!root || !currentScriptUrl) return;
+		if (meeplesApi) {
+			if (meeplesApi.resume) {
+				meeplesApi.layout();
+				meeplesApi.resume();
+			}
+			return;
+		}
+		if (!meeplesAssets) {
+			const base = new URL('../meeples/', currentScriptUrl);
+			meeplesAssets = Promise.all(['labskin-footer.css', 'labskin-footer.js'].map(function (name) {
+				return new Promise(function (resolve, reject) {
+					const asset = document.createElement(name.endsWith('.css') ? 'link' : 'script');
+					const url = new URL(name, base);
+					url.search = currentScriptUrl.search;
+					if (name.endsWith('.css')) {
+						asset.rel = 'stylesheet';
+						asset.href = url.href;
+					} else {
+						asset.src = url.href;
+						asset.async = true;
+					}
+					asset.onload = resolve;
+					asset.onerror = function () { asset.remove(); reject(new Error('Meeple asset failed: ' + name)); };
+					document.head.appendChild(asset);
+				});
+			}));
+		}
+		meeplesAssets.then(function () {
+			if (panel.hidden || meeplesApi) return;
+			meeplesApi = window.LabskinFooter.mount(root, {
+				spritesUrl: root.dataset.lsfSprites,
+				atlasUrl: root.dataset.lsfAtlas,
+				logo: root.dataset.lsfLogo
+			});
+		}).catch(function (error) {
+			meeplesAssets = null;
+			root.dataset.error = 'assets';
+			console.error('Meeple footer could not load.', error);
+		});
+	}
 
 	function mountPreviewPanel() {
 		if (previewMounted || !window.FooterLabPreviewAnimation) {
@@ -131,6 +179,10 @@
 		if ('fluorescent' === variant) {
 			mountFluorescentPanel();
 		}
+
+		if ('meeples' === variant) {
+			mountMeeplesPanel();
+		}
 	}
 
 	tabs.forEach(function (tab) {
@@ -139,8 +191,7 @@
 		});
 	});
 
-	const initialVariant = homepageMode
-		? 'current'
-		: (new URL(window.location.href)).searchParams.get('footer') || window.localStorage.getItem(storageKey) || 'current';
+	const initialVariant = (new URL(window.location.href)).searchParams.get('footer')
+		|| (homepageMode ? 'current' : window.localStorage.getItem(storageKey) || 'current');
 	setVariant(labels[initialVariant] ? initialVariant : 'current');
 })();

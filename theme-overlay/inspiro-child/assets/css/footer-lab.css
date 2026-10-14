@@ -79,8 +79,23 @@
 
 .footer-lab-selector {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: 10px;
+}
+
+.footer-lab-current-footer.footer-lab-meeples-footer {
+	padding: 42px 0 0;
+}
+
+.footer-lab-meeples-footer .lsf-scene {
+	margin-top: 28px;
+	min-height: 144px;
+}
+
+@media (max-width: 699px) {
+	.footer-lab-meeples-footer .lsf-scene {
+		min-height: 304px;
+	}
 }
 
 .footer-lab-journey-actions,

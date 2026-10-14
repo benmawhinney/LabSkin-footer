@@ -10,6 +10,8 @@ The WordPress child theme mirror used for the M&C staging deployment is not a co
 - `theme-overlay/inspiro-child/footer.php` - Homepage-only switcher integration; other pages retain the standard footer.
 - `theme-overlay/inspiro-child/functions.php` - M&C staging-only noindex response and robots directives.
 - `theme-overlay/inspiro-child/template-parts/footer/footer-treatment-switcher.php` - Footer treatments and prototype-control label.
+- `theme-overlay/inspiro-child/template-parts/footer/footer-meeples.php` - Current-footer duplicate with the MEEPLE lab strip.
+- `theme-overlay/inspiro-child/assets/meeples/` - Lazy-loaded lab runtime, CSS, original 32px team sheet/atlas, and generated 44px wall-screen logo.
 - `theme-overlay/inspiro-child/template-parts/model-explorer.php` - Homepage-only, lazy model explainer embed.
 - `theme-overlay/inspiro-child/assets/model-explorer/` - Full-thickness scene, original footer shader source, frame bridge, and pinned local Three.js 0.180.0 dependencies with license.
 - `theme-overlay/inspiro-child/assets/js/model-explorer-host.js` - Origin-checked iframe sizing and offscreen visibility control.
@@ -21,7 +23,7 @@ The WordPress child theme mirror used for the M&C staging deployment is not a co
 - `theme-overlay/inspiro-child/assets/js/footer-mesh.js` - Raw WebGL2 mesh renderer and interactions.
 - `scripts/optimize-homepage-images.php` - Dry-run-first WebP encoder for homepage assets and responsive derivatives.
 - `scripts/migrate-homepage-images-to-webp.php` - Dry-run-first WordPress reference/attachment metadata migration with a targeted rollback JSON.
-- `meeples/` - Meeples footer kit: pixel-art lab strip runtime, team sprite sheets, sprite generator, demo, preview and the VS Code integration prompt (`meeples/VSCODE_PROMPT.md`). Not yet integrated into `theme-overlay/`.
+- `meeples/` - Meeples source kit, design assets, sprite generator, demo, preview and integration plan. The 64px sheet and generator remain design-only.
 - `reference/` - supplied LabSkin marketing-flow stills.
 - `docs/` - design brief and implementation work order.
 
@@ -31,17 +33,26 @@ The Mesh concept is available on the M&C dev/staging Footer Lab at:
 
 https://mischiefandcraft.com/footer-lab/?footer=mesh
 
-The homepage footer now offers the Current, LabSkin-Dev, Evidence, Fluorescent, and Mesh treatments. Its blueprint-backed selector is explicitly marked as prototype-only; non-homepage routes retain the standard footer. The LabSkin-Dev treatment includes the SCS Formulate banner between its content and legal row. The Fluorescent camera runs automatically without the scrubber/view controls. Mesh defaults to Insert with its shape controls commented out. The separate Footer Lab route remains available for review.
+The homepage footer now offers Current, LabSkin-Dev, Evidence, Fluorescent, Mesh, and MEEPLE. Its blueprint-backed selector is explicitly marked as prototype-only; non-homepage routes retain the standard footer. The LabSkin-Dev treatment includes the SCS Formulate banner between its content and legal row. The Fluorescent camera runs automatically without the scrubber/view controls. Mesh defaults to Insert with its shape controls commented out. The separate Footer Lab route remains available for review.
+
+MEEPLE is available at `https://mischiefandcraft.com/?footer=meeples` and on the Footer Lab route. It duplicates Current's live footer content, with the transparent pixel-art laboratory beneath it. Its runtime, stylesheet, team atlas and sprites load only on selection. Desktop uses one floor; scene widths below 700px use two floors, with scientists passing through LAB doors via offscreen stairs. The original palette, 17-person atlas and sprite sheet are unchanged. Staffing follows Europe/London lab hours and preserves at least two visible scientists. Hover labels remain enabled for review.
+
+Weather is a browser request to Open-Meteo for Wetherby, cached locally for 20 minutes; no analytics or third-party script is added. API failure keeps the default sky. Animation pauses when hidden/offscreen; reduced motion displays a still frame every 30 seconds. The 44x13 wall-screen logo is generated from the existing white Labskin logo with nearest-neighbour scaling. Scientific stills and pixel scenes are illustrative.
+
+For local review, serve this repository over HTTP and open `meeples/demo/index.html`. Serving the demo at the server root would break its relative asset URLs. Stop for staging sign-off before any production integration.
 
 ## Checks
 
 ```powershell
 php -l theme-overlay/inspiro-child/page-footer-lab.php
 php -l theme-overlay/inspiro-child/template-parts/footer/footer-treatment-switcher.php
+php -l theme-overlay/inspiro-child/template-parts/footer/footer-meeples.php
 node --check theme-overlay/inspiro-child/assets/js/footer-lab.js
 node --check theme-overlay/inspiro-child/assets/js/skin-footer.js
 node --check theme-overlay/inspiro-child/assets/js/footer-mesh.js
 node --check theme-overlay/inspiro-child/assets/js/footer-lab-preview-animation.js
+node --check meeples/src/labskin-footer.js
+node --check theme-overlay/inspiro-child/assets/meeples/labskin-footer.js
 ```
 
 The footer Mesh module loads when the Mesh treatment is selected. It uses WebGL2, one draw call, and a CSS fallback. The supplied brief and work order record current limitations and outstanding physical-device checks.

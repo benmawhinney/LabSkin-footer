@@ -107,7 +107,9 @@
     this.cv.setAttribute("aria-label", "Animated illustration of Labskin scientists fetching supplies from the store, working at the bench, meeting at a table and taking breaks, with today's weather outside the windows");
     this.tip = document.createElement("div"); this.tip.className = "lsf-tip"; this.tip.hidden = true;
     el.appendChild(this.cv); el.appendChild(this.tip);
-    this.g = this.cv.getContext("2d");
+    this.stage = document.createElement("canvas");
+    this.g = this.stage.getContext("2d");
+    this.output = this.cv.getContext("2d");
     this.people = []; this.agents = []; this.particles = []; this.clouds = [];
     this.weather = WMO(1); this.flash = 0; this.debugTime = null; this.timeScale = 1;
     this.doors = { store: 0, brk: 0 }; this.meetT = 20; this.meeting = null;
@@ -127,10 +129,19 @@
     });
   };
   Scene.prototype.layout = function () {
-    var o = this.o, w = this.el.clientWidth || 800;
-    this.W = Math.max(200, Math.ceil(w / o.scale)); this.H = o.height;
-    this.cv.width = this.W; this.cv.height = this.H;
-    this.cv.style.width = "100%"; this.cv.style.height = (this.H * o.scale) + "px";
+    var o = this.o, w = this.el.clientWidth;
+    if (!w || w === this.layoutWidth) return;
+    this.layoutWidth = w;
+    this.stacked = w < 700;
+    this.rowWidth = Math.max(140, Math.ceil(w / o.scale));
+    this.W = this.rowWidth * (this.stacked ? 2 : 1); this.H = o.height;
+    this.outputHeight = this.stacked ? this.H * 2 + 8 : this.H;
+    this.cv.width = this.rowWidth; this.cv.height = this.outputHeight;
+    this.stage.width = this.W; this.stage.height = this.H;
+    this.output.imageSmoothingEnabled = false;
+    this.el.setAttribute("data-floors", this.stacked ? "2" : "1");
+    this.cv.style.width = "100%"; this.cv.style.height = (this.outputHeight * o.scale) + "px";
+    this.portal = this.stacked ? { start: this.rowWidth - 26, end: this.rowWidth + 26 } : null;
     var W = this.W, H = this.H, rnd = seeded(7);
     this.floorY = H - 1; this.feetY = H - 2;
     this.storeX = 4; this.breakX = W - 26;                       // door left edges, 22 wide
@@ -152,6 +163,7 @@
     this.equip = []; var x = this.benchX0 + 6, k = 0;
     while (x < this.benchX1 - 22) {
       var kind = kinds[k % kinds.length], w2 = { hood: 30, scope: 14, rack: 20, pc: 18, incub: 20, centri: 16 }[kind];
+      if (this.portal && x + w2 > this.portal.start - 3 && x < this.portal.end + 3) x = this.portal.end + 3;
       if (x + w2 > this.benchX1 - 4) break;
       this.equip.push({ kind: kind, x: x, w: w2, station: Math.round(x + w2 / 2), busy: null, phase: rnd() * 6 });
       x += w2 + 14 + Math.round(rnd() * 12); k++;
@@ -187,7 +199,8 @@
   // what to do next: store run, bench work, or a break
   Scene.prototype.decide = function (a) {
     this.release(a);
-    if (a.leaving) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "exit"); }
+    if (a.leaving && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "exit"); }
+    if (a.leaving) a.leaving = false;
     if (a.energy <= 0 && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "break"); }
     if (!a.carry && Math.random() < 0.55 && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("store"), "store"); }
     var st = this.freeStation();
@@ -255,6 +268,15 @@
       }
       if (a.state === "walk") {
         var d = a.tx - a.x; a.dir = d >= 0 ? 1 : -1;
+        if (self.portal) {
+          var nextX = a.x + a.dir * Math.min(Math.abs(d), speed * dt);
+          if (a.x <= self.portal.start && nextX > self.portal.start && a.tx >= self.portal.end) {
+            a.x = self.portal.end; self.open_pass = performance.now() + 1100; return;
+          }
+          if (a.x >= self.portal.end && nextX < self.portal.end && a.tx <= self.portal.start) {
+            a.x = self.portal.start; self.open_pass = performance.now() + 1100; return;
+          }
+        }
         if (Math.abs(d) <= speed * dt) { a.x = a.tx; self.arrive(a); } else a.x += a.dir * speed * dt;
         if (Math.abs(a.x - self.doorX("store")) < 16 && a.then === "store") self.openDoor("store");
         if (Math.abs(a.x - self.doorX("brk")) < 16 && (a.then === "break" || a.then === "exit")) self.openDoor("brk");
@@ -308,6 +330,11 @@
     // --- doors with signs
     this.drawDoor(this.storeX, "STORE", this.doors.store, "store");
     this.drawDoor(this.breakX, "BREAK ROOM", this.doors.brk, "brk");
+    if (this.portal) {
+      var passageOpen = performance.now() < (this.open_pass || 0) ? 1 : 0;
+      this.drawDoor(this.portal.start + 2, "LAB", passageOpen, "brk");
+      this.drawDoor(this.portal.end - 24, "LAB", passageOpen, "brk");
+    }
     // --- wall screen in the meeting area: wordmark, then scrolling science stills
     this.drawScreen(tms);
     // --- glass-brick partition
@@ -319,8 +346,12 @@
     g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(gx, gy, 10, 1); g.fillRect(gx + 1, gy + 1, 1, this.floorY - gy - 1);
     // --- bench
     var b0 = this.benchX0, b1 = this.benchX1, bt = this.benchTop;
-    g.fillStyle = "#e9ecee"; g.fillRect(b0, bt, b1 - b0, 2); g.fillStyle = "#7f8f99"; g.fillRect(b0, bt + 2, b1 - b0, this.floorY - bt - 2);
-    for (var cx2 = b0 + 3; cx2 < b1 - 12; cx2 += 14) { g.fillStyle = "#93a3ad"; g.fillRect(cx2, bt + 4, 12, this.floorY - bt - 6); g.fillStyle = "#6c7c86"; g.fillRect(cx2 + 5, bt + 7, 2, 1); }
+    var benchSpans = this.portal ? [[b0, Math.min(b1, this.portal.start - 3)], [Math.max(b0, this.portal.end + 3), b1]] : [[b0, b1]];
+    benchSpans.forEach(function (span) {
+      if (span[1] <= span[0]) return;
+      g.fillStyle = "#e9ecee"; g.fillRect(span[0], bt, span[1] - span[0], 2); g.fillStyle = "#7f8f99"; g.fillRect(span[0], bt + 2, span[1] - span[0], self.floorY - bt - 2);
+      for (var cx2 = span[0] + 3; cx2 < span[1] - 12; cx2 += 14) { g.fillStyle = "#93a3ad"; g.fillRect(cx2, bt + 4, 12, self.floorY - bt - 6); g.fillStyle = "#6c7c86"; g.fillRect(cx2 + 5, bt + 7, 2, 1); }
+    });
     var lights = true;
     this.equip.forEach(function (e) { self.drawEquip(e, tms, lights); });
     // --- meeting table and chairs (chair backs behind people, table in front)
@@ -341,6 +372,7 @@
       else g.drawImage(self.sheet, sx, sy, cs, cs, X, Y, cs, cs);
       if (a.carry && a.state === "walk") { var hx2 = flip ? X + 13 : X + 17; g.fillStyle = "#1e2a2e"; g.fillRect(hx2 - 1, Y + 19, 5, 6); g.fillStyle = a.carry; g.fillRect(hx2, Y + 20, 3, 4); }
       a.box = [X + 8, Y, 16, cs - oy];
+      if (self.stacked && a.x >= self.rowWidth) { a.box[0] -= self.rowWidth; a.box[1] += self.H + 8; }
     });
     // table top and seat fronts in front of seated people
     g.fillStyle = "#c49a6c"; g.fillRect(tb.x, ty, tb.w, 2); g.fillStyle = "#8a6a48"; g.fillRect(tb.x + 2, ty + 2, 2, this.floorY - ty - 2); g.fillRect(tb.x + tb.w - 4, ty + 2, 2, this.floorY - ty - 2);
@@ -348,6 +380,9 @@
     this.seats.forEach(function (z) { g.fillStyle = "#3c4c53"; g.fillRect(z.x - 4, ty + 3, 8, 2); g.fillRect(z.x - 3, ty + 5, 1, self.floorY - ty - 5); g.fillRect(z.x + 2, ty + 5, 1, self.floorY - ty - 5); });
     // --- one-pixel floor line
     g.fillStyle = "#4d6670"; g.fillRect(0, this.floorY, W, 1);
+    this.output.clearRect(0, 0, this.rowWidth, this.outputHeight);
+    this.output.drawImage(this.stage, 0, 0, this.rowWidth, H, 0, 0, this.rowWidth, H);
+    if (this.stacked) this.output.drawImage(this.stage, this.rowWidth, 0, this.rowWidth, H, 0, H + 8, this.rowWidth, H);
   };
   Scene.prototype.drawDoor = function (x, label, open, which) {
     var g = this.g, y0 = this.floorY - 36, h = 36, w = 22;
@@ -438,20 +473,22 @@
       var d = self.now();
       if (!self.reduced) self.step(dt, d);
       self.draw(d, t);
-      if (self.reduced) { self.timer = setTimeout(function () { last = performance.now(); self.raf = requestAnimationFrame(tick); }, 30000); return; }
+      if (self.reduced) { self.timer = setTimeout(function () { self.timer = null; self.resume(); }, 30000); return; }
       self.raf = requestAnimationFrame(tick);
     }
-    this.resume = function () { if (!self.raf) { last = performance.now(); self.raf = requestAnimationFrame(tick); } };
+    this.pause = function () { if (self.raf) cancelAnimationFrame(self.raf); if (self.timer) clearTimeout(self.timer); self.raf = null; self.timer = null; };
+    this.resume = function () { if (self.visible && !document.hidden && !self.raf && !self.timer) { last = performance.now(); self.raf = requestAnimationFrame(tick); } };
     this.resume();
-    if ("IntersectionObserver" in root) new IntersectionObserver(function (es) { self.visible = es[0].isIntersecting; if (self.visible) self.resume(); }).observe(this.el);
-    document.addEventListener("visibilitychange", function () { if (!document.hidden) self.resume(); });
+    if ("IntersectionObserver" in root) new IntersectionObserver(function (es) { self.visible = es[0].isIntersecting; if (self.visible) self.resume(); else self.pause(); }).observe(this.el);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) self.resume(); else self.pause(); });
+    if (root.matchMedia) root.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function (event) { self.reduced = event.matches; self.pause(); self.resume(); });
     var rt; root.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { self.layout(); }, 150); });
     setInterval(function () { self.fetchWeather(); }, this.o.cacheMinutes * 60000);
     if (this.o.labels === "hover") {
       this.cv.addEventListener("pointermove", function (e) {
-        var r = self.cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * self.W, y = (e.clientY - r.top) / r.height * self.H;
+        var r = self.cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * self.rowWidth, y = (e.clientY - r.top) / r.height * self.outputHeight;
         var hit = self.agents.find(function (a) { return !a.hidden && a.box && x >= a.box[0] && x <= a.box[0] + a.box[2] && y >= a.box[1] && y <= a.box[1] + a.box[3]; });
-        if (hit) { self.tip.hidden = false; self.tip.textContent = hit.p.first + " · " + hit.p.role + (hit.label ? " · " + hit.label : ""); self.tip.style.left = (e.clientX - r.left) + "px"; self.tip.style.top = Math.max(0, (hit.box[1] * r.height / self.H) - 26) + "px"; }
+        if (hit) { self.tip.hidden = false; self.tip.textContent = hit.p.first + " · " + hit.p.role + (hit.label ? " · " + hit.label : ""); var halfTip = self.tip.offsetWidth / 2; self.tip.style.left = clamp(e.clientX - r.left, halfTip + 8, r.width - halfTip - 8) + "px"; self.tip.style.top = Math.max(0, (hit.box[1] * r.height / self.outputHeight) - self.tip.offsetHeight - 6) + "px"; }
         else self.tip.hidden = true;
       });
       this.cv.addEventListener("pointerleave", function () { self.tip.hidden = true; });

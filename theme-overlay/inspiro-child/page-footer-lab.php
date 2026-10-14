@@ -220,10 +220,14 @@ $logo_markup = $render_logo();
 					<button type="button" aria-pressed="false" data-footer-variant="preview">Evidence concept</button>
 					<button type="button" aria-pressed="false" data-footer-variant="fluorescent">Fluorescent concept</button>
 					<button type="button" aria-pressed="false" data-footer-variant="mesh">Mesh concept</button>
+					<button type="button" aria-pressed="false" data-footer-variant="meeples">Meeple</button>
 				</div>
 			</section>
 
 			<section class="footer-lab-viewer" aria-live="polite">
+				<div class="footer-lab-panel" data-footer-panel="meeples" aria-hidden="true" hidden>
+					<?php get_template_part( 'template-parts/footer/footer', 'meeples' ); ?>
+				</div>
 				<div class="footer-lab-panel is-active" data-footer-panel="current" aria-hidden="false">
 					<footer class="site-footer footer-lab-current-footer" role="contentinfo">
 						<div class="inner-wrap">
