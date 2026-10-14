@@ -16,6 +16,7 @@
     labels: "hover",       // "hover" | "off"
     weather: "live",       // "live" | "off"
     logo: null,            // optional URL of a small pixel logo image for the wall screen
+    screenCell: null,      // optional pixel-art cell image for the wall screen rotation
     cacheMinutes: 20,
     maxPeople: 8,
     minOnScreen: 2
@@ -186,10 +187,12 @@
     var atlasP = o.atlas && typeof o.atlas === "object" ? Promise.resolve(o.atlas) : fetch(o.atlasUrl).then(function (r) { return r.json(); });
     var img = function (src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); };
     var logoP = o.logo ? img(o.logo).catch(function () { return null; }) : Promise.resolve(null);
+    var screenCellP = o.screenCell ? img(o.screenCell).catch(function () { return null; }) : Promise.resolve(null);
     var botP = o.bot ? img(o.bot).catch(function () { return null; }) : Promise.resolve(null);
-    return Promise.all([atlasP, img(o.spritesUrl), logoP, botP]).then(function (r) {
+    return Promise.all([atlasP, img(o.spritesUrl), logoP, screenCellP, botP]).then(function (r) {
       self.cell = r[0].cell || 32; self.people = r[0].people.slice(); self.sheet = r[1]; self.logo = r[2];
-      self.bot = r[3];
+      if (r[3]) self.stills.push(r[3]);
+      self.bot = r[4];
       self.mirror = document.createElement("canvas"); self.mirror.width = self.sheet.width; self.mirror.height = self.sheet.height;
       var m = self.mirror.getContext("2d"); m.translate(self.sheet.width, 0); m.scale(-1, 1); m.drawImage(self.sheet, 0, 0);
     });
@@ -225,9 +228,9 @@
     this.windows = []; var span = this.benchX1 - this.benchX0, n = Math.max(1, Math.floor(span / 110));
     for (var i = 0; i < n; i++) { var cx = this.benchX0 + (i + 0.5) * span / n; this.windows.push({ x: Math.round(cx - 18), y: 3, w: 36, h: 20 }); }
     // equipment along the bench; each item is a work station
-    var kinds = ["hood", "scope", "rack", "pc", "incub", "centri", "rack", "hood", "scope", "pc"];
+    var kinds = ["hood", "rack", "pc", "incub", "centri", "rack", "scope", "pc"];
     this.equip = []; var x = this.benchX0 + 6, k = 0;
-    while (x < this.benchX1 - 22) {
+    while (x < this.benchX1 - 22 && k < kinds.length) {
       var kind = kinds[k % kinds.length], w2 = { hood: 30, scope: 14, rack: 20, pc: 18, incub: 20, centri: 16 }[kind];
       if (this.portal && x + w2 > this.portal.start - 3 && x < this.portal.end + 3) x = this.portal.end + 3;
       if (x + w2 > this.benchX1 - 4) break;
@@ -563,7 +566,7 @@
         g.fillStyle = "#0f1a1c"; g.fillRect(x + ox, y, w, h);
         if (self.logo) { var lw = Math.min(w - 6, self.logo.width), lh = Math.round(self.logo.height * lw / self.logo.width); g.drawImage(self.logo, x + ox + Math.round((w - lw) / 2), y + Math.round((h - lh) / 2), lw, lh); }
         else { var tw = text(g, "LABSKIN", 0, -100, "#000"); text(g, "LABSKIN", x + ox + Math.round((w - tw) / 2), y + 10, "#5fd3b3"); g.fillStyle = "#f2b84b"; g.fillRect(x + ox + Math.round((w - tw) / 2), y + 17, tw, 1); }
-      } else { var st = self.stills[(k % slides) - 1]; g.drawImage(st, x + ox + 3, y + 3, w - 6, h - 6); g.fillStyle = "#0f1a1c"; g.fillRect(x + ox, y, w, 3); g.fillRect(x + ox, y + h - 3, w, 3); g.fillRect(x + ox, y, 3, h); g.fillRect(x + ox + w - 3, y, 3, h); }
+      } else { var st = self.stills[(k % slides) - 1], sw = st.naturalWidth || st.width, sh = st.naturalHeight || st.height, dw = w - 6, dh = h - 6, scale = Math.min(dw / sw, dh / sh), iw = Math.round(sw * scale), ih = Math.round(sh * scale), ix = x + ox + 3 + Math.round((dw - iw) / 2), iy = y + 3 + Math.round((dh - ih) / 2), smooth = g.imageSmoothingEnabled; g.fillStyle = "#0f1a1c"; g.fillRect(x + ox + 3, y + 3, dw, dh); g.imageSmoothingEnabled = false; g.drawImage(st, ix, iy, iw, ih); g.imageSmoothingEnabled = smooth; g.fillStyle = "#0f1a1c"; g.fillRect(x + ox, y, w, 3); g.fillRect(x + ox, y + h - 3, w, 3); g.fillRect(x + ox, y, 3, h); g.fillRect(x + ox + w - 3, y, 3, h); }
     }
     var off = Math.round(slide * w);
     drawSlide(idx, -off); if (slide > 0) drawSlide(idx + 1, w - off);
@@ -659,6 +662,7 @@
     var ds = el.dataset || {};
     if (ds.lat) o.lat = +ds.lat; if (ds.lon) o.lon = +ds.lon; if (ds.labels) o.labels = ds.labels; if (ds.weather) o.weather = ds.weather;
     if (ds.scale) o.scale = +ds.scale; if (ds.maxPeople) o.maxPeople = +ds.maxPeople; if (ds.logo) o.logo = ds.logo;
+    if (ds.lsfScreenCell || ds.screenCell) o.screenCell = ds.lsfScreenCell || ds.screenCell;
     if (ds.lsfHours || ds.hours) o.hours = ds.lsfHours || ds.hours;
     if (ds.lsfPhone || ds.phone) o.phone = ds.lsfPhone || ds.phone;
     if (ds.lsfContact || ds.contact) o.contact = ds.lsfContact || ds.contact;

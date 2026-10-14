@@ -84,12 +84,18 @@
 }
 
 .footer-lab-current-footer.footer-lab-meeples-footer {
-	padding: 42px 0 0;
+	padding: 42px 0 28px;
 }
 
 .footer-lab-meeples-footer .lsf-scene {
 	margin-top: 28px;
+	margin-bottom: 0;
 	min-height: 144px;
+}
+
+.footer-lab-meeples-footer .site-info {
+	padding-top: 18px;
+	padding-bottom: 14px;
 }
 
 @media (max-width: 699px) {
