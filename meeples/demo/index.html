@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Labskin footer lab demo</title>
+<link rel="stylesheet" href="../src/labskin-footer.css">
+<style>body{margin:0;font-family:system-ui,sans-serif;background:#f4f6f6}main{min-height:60vh;padding:40px}footer{background:#14232a;color:#d9e4e2}footer .lsf-scene{margin:0 16px}footer .cols{display:flex;gap:40px;flex-wrap:wrap;padding:32px 24px}footer a{color:#9fd9c6}</style>
+</head><body>
+<main><h1>Page content</h1><p>Scroll down to the footer.</p></main>
+<footer>
+  <div class="cols"><div><b>Labskin</b><br>Wetherby, West Yorkshire</div><div><a href="#">Contract research</a><br><a href="#">Labskin-S</a></div><div><a href="#">Meet the team</a><br><a href="#">Contact us</a></div></div>
+  <div class="lsf-scene" data-sprites="../assets/labskin-meeples-32.png" data-atlas="../assets/labskin-meeples.json"></div>
+</footer>
+<script src="../src/labskin-footer.js" defer></script>
+<script>
+// Try different conditions from the console, for example:
+// LabskinFooter.debug({ time: new Date().setHours(21,0,0,0), weather: "snow", speed: 60 })
+// LabskinFooter.debug({ time: null, weather: "live", speed: 1 })   // back to real time
+</script>
+</body></html>

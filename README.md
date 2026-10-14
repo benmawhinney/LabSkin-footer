@@ -21,6 +21,7 @@ The WordPress child theme mirror used for the M&C staging deployment is not a co
 - `theme-overlay/inspiro-child/assets/js/footer-mesh.js` - Raw WebGL2 mesh renderer and interactions.
 - `scripts/optimize-homepage-images.php` - Dry-run-first WebP encoder for homepage assets and responsive derivatives.
 - `scripts/migrate-homepage-images-to-webp.php` - Dry-run-first WordPress reference/attachment metadata migration with a targeted rollback JSON.
+- `meeples/` - Meeples footer kit: pixel-art lab strip runtime, team sprite sheets, sprite generator, demo, preview and the VS Code integration prompt (`meeples/VSCODE_PROMPT.md`). Not yet integrated into `theme-overlay/`.
 - `reference/` - supplied LabSkin marketing-flow stills.
 - `docs/` - design brief and implementation work order.
 

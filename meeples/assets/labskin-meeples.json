@@ -1,0 +1,151 @@
+{
+ "cell": 32,
+ "columns": [
+  "walk0",
+  "walk1",
+  "walk2",
+  "walk3",
+  "work0",
+  "work1",
+  "idle"
+ ],
+ "facing": "walk frames face right; mirror horizontally to walk left",
+ "people": [
+  {
+   "row": 0,
+   "name": "Nicola Kingswell",
+   "first": "Nicola",
+   "role": "Scientific Director / Owner",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 1,
+   "name": "Stewart Sale",
+   "first": "Stewart",
+   "role": "Business Development Director",
+   "outfit": "suit",
+   "glasses": false
+  },
+  {
+   "row": 2,
+   "name": "Bart Cwikla",
+   "first": "Bart",
+   "role": "Head of Microbiology",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 3,
+   "name": "Vinay Thoree",
+   "first": "Vinay",
+   "role": "Head of Histology",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 4,
+   "name": "Holly Lyons",
+   "first": "Holly",
+   "role": "Client Project Manager",
+   "outfit": "suit",
+   "glasses": false
+  },
+  {
+   "row": 5,
+   "name": "Emma Corbin",
+   "first": "Emma",
+   "role": "Delivery Project Manager",
+   "outfit": "suit",
+   "glasses": false
+  },
+  {
+   "row": 6,
+   "name": "Matteo Capocefalo",
+   "first": "Matteo",
+   "role": "Scientific Strategy and Operations Director",
+   "outfit": "suit",
+   "glasses": true
+  },
+  {
+   "row": 7,
+   "name": "Simms Adu",
+   "first": "Simms",
+   "role": "KTP Associate",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 8,
+   "name": "Raphael Slip",
+   "first": "Raphael",
+   "role": "Head of Production",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 9,
+   "name": "Joe Taylor",
+   "first": "Joe",
+   "role": "Junior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 10,
+   "name": "Nell Richardson",
+   "first": "Nell",
+   "role": "Junior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 11,
+   "name": "Charlotte Heath",
+   "first": "Charlotte",
+   "role": "Junior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 12,
+   "name": "Mariyah Ahmed",
+   "first": "Mariyah",
+   "role": "Senior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 13,
+   "name": "Laura Crouch",
+   "first": "Laura",
+   "role": "Senior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 14,
+   "name": "Jenny White",
+   "first": "Jenny",
+   "role": "Senior Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 15,
+   "name": "Silvia Greco",
+   "first": "Silvia",
+   "role": "Scientist",
+   "outfit": "coat",
+   "glasses": false
+  },
+  {
+   "row": 16,
+   "name": "Erin Dela Cruz",
+   "first": "Erin",
+   "role": "Industrial Placement Student",
+   "outfit": "coat",
+   "glasses": false
+  }
+ ]
+}
