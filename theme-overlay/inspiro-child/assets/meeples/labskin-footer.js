@@ -281,7 +281,7 @@
     } else this.botComputer = computer;
     var botRack = this.botComputer && this.equip.filter(function (equipment) { return equipment.kind === "rack" && equipment.station < this.botComputer.station; }, this).pop();
     var botX = botRack ? botRack.station : (this.botComputer ? this.botComputer.station - 20 : this.benchX0 + 12);
-    this.phoneArt = { x: this.table.x + 2, y: this.floorY - 20, w: 12, h: 9 };
+    this.phoneArt = { x: this.table.x + 2, y: this.floorY - 22, w: 12, h: 9 }; // base row rests on the table top (floorY - 13)
     this.botArt = { x: botX - 16, y: this.feetY - 30, w: 32, h: 32 };
     this.clouds = []; for (var c = 0; c < Math.ceil(W / 50); c++) this.clouds.push({ x: rnd() * W, y: 3 + rnd() * 12, s: 0.6 + rnd() * 0.8 });
     this.stars = []; for (var s2 = 0; s2 < W / 5; s2++) this.stars.push({ x: rnd() * W, y: rnd() * 22, t: rnd() * 6 });
