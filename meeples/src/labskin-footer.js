@@ -1,7 +1,9 @@
 /*! Labskin Footer Lab — animated pixel-art lab strip for the site footer.
  *  The footer background is the wall; a one-pixel floor line runs along the bottom.
  *  Scientists fetch reagents from the Store, work at the bench, meet at the table behind
- *  the glass-brick wall, and take breaks in the Break room. At least two are always on screen.
+ *  the glass-brick wall, and take breaks in the Break room. While open, at least two are always on
+ *  screen; the lab fills to a full crew by half an hour after opening, free stations are taken
+ *  over promptly, and people rotate in and out on shifts through the day.
  *  Windows show real-time day and night for Wetherby and the live weather (Open-Meteo, no key).
  *  A wall screen shows the Labskin wordmark, then scrolls through science stills.
  *  No dependencies. Mount: <div class="lsf-scene" data-sprites="…/labskin-meeples-32.png" data-atlas="…/labskin-meeples.json"></div>
@@ -17,8 +19,11 @@
     weather: "live",       // "live" | "off"
     logo: null,            // optional URL of a small pixel logo image for the wall screen
     cacheMinutes: 20,
-    maxPeople: 8,
-    minOnScreen: 2
+    maxPeople: 5,          // full working crew, reached rampMinutes after opening
+    maxOnScreen: 6,        // hard cap, leaving one slot for shift handovers
+    minOnScreen: 2,
+    rampMinutes: 30,
+    shiftMinutes: [40, 90] // how long each person stays before someone new rotates in
   };
   DEFAULTS.hours = "Mon-Fri 09:00-17:30";
   DEFAULTS.phone = "+447387001146";
@@ -40,7 +45,22 @@
 
   // 3x5 pixel font for signs and the wordmark
   var FONT = { A: "010101111101101", B: "110101110101110", E: "111100110100111", I: "111010010010111", K: "101101110101101", L: "100100100100111",
-    M: "101111111101101", N: "110101101101101", O: "111101101101111", R: "110101110101101", S: "011100010001110", T: "111010010010010", C: "111100100100111", D: "110101101101110", P: "110101110100100", " ": "000000000000000" };
+    M: "101111111101101", N: "110101101101101", O: "111101101101111", R: "110101110101101", S: "011100010001110", T: "111010010010010", C: "111100100100111", D: "110101101101110", P: "110101110100100", " ": "000000000000000",
+    G: "111100101101111", 0: "111101101101111", 1: "010110010010111", 2: "111001111100111", 3: "111001111001111", 4: "101101111001001",
+    5: "111100111001111", 6: "111100111101111", 7: "111001001010010", 8: "111101111101111", 9: "111101111001111" };
+  // classic red rotary telephone, 12x9: handset on the cradle, cream dial with finger holes
+  var PHONE = [
+    ".KKKKKKKKKK.",
+    "HHH......HHH",
+    "..LLRRRRRR..",
+    ".RRDoDoDDRR.",
+    ".RRoDDDDoRR.",
+    "RRRDDhhDDRRR",
+    "RRRoDDDDDRRR",
+    "RRRDoDoDDRRR",
+    "SSSSSSSSSSSS"
+  ];
+  var PHONE_COLOURS = { K: "#e0645a", H: "#a5332d", R: "#c4423b", L: "#e0645a", S: "#8e2a25", D: "#f3efe6", o: "#2b3a40", h: "#8e2a25" };
   function text(g, str, x, y, col, px) {
     px = px || 1; g.fillStyle = col;
     for (var i = 0; i < str.length; i++) { var f = FONT[str[i]] || FONT[" "]; for (var k = 0; k < 15; k++) if (f[k] === "1") g.fillRect(x + (i * 4 + k % 3) * px, y + Math.floor(k / 3) * px, px, px); }
@@ -57,6 +77,17 @@
     var f = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", weekday: "short", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit" });
     var o = {}; f.formatToParts(date).forEach(function (p) { o[p.type] = p.value; });
     return { h: +o.hour, m: +o.minute, wd: o.weekday, ymd: o.year + o.month + o.day };
+  }
+  // wall clock reading: local time plus its zone; the browser's tz database handles the BST/GMT changeovers
+  var zoneFormats = {};
+  function clockText(date, tz) {
+    var p = londonParts(date, tz), f = zoneFormats[tz] || (zoneFormats[tz] = new Intl.DateTimeFormat("en-GB", { timeZone: tz, timeZoneName: "short" }));
+    var zone = (f.formatToParts(date).find(function (part) { return part.type === "timeZoneName"; }) || {}).value || "";
+    if (!/^[A-Z]{3,4}$/.test(zone)) { // some engines say "GMT+1"; name the UK zones ourselves
+      var utcMinutes = date.getUTCHours() * 60 + date.getUTCMinutes(), offset = ((p.h * 60 + p.m - utcMinutes) % 1440 + 1440) % 1440;
+      zone = tz === "Europe/London" ? (offset === 60 ? "BST" : "GMT") : "";
+    }
+    return { time: (p.h < 10 ? "0" : "") + p.h + ":" + (p.m < 10 ? "0" : "") + p.m, zone: zone };
   }
   function sun(date, lat, lon) {
     var rad = Math.PI / 180, d = date / 86400000 - 10957.5;
@@ -214,13 +245,17 @@
     this.glassX = Math.round(W * 2 / 3);                        // glass-brick partition
     this.benchX0 = this.storeX + 30; this.benchX1 = this.glassX - 10;
     this.benchTop = H - 16;
-    // meeting area: table centred between the glass wall and the break room door
-    var m0 = this.glassX + 14, m1 = this.breakX - 8, mc = Math.round((m0 + m1) / 2), tw = clamp(m1 - m0 - 16, 18, 46);
+    // meeting area: a coffee nook against the glass wall, then the table centred before the break room door
+    this.nook = { x: this.glassX + 12, w: 18 };
+    var m0 = this.nook.x + this.nook.w + 8, m1 = this.breakX - 8, mc = Math.round((m0 + m1) / 2), tw = clamp(m1 - m0 - 16, 18, 46);
     this.table = { x: mc - Math.round(tw / 2), w: tw };
     this.seats = [this.table.x - 5, this.table.x + this.table.w + 5];
     if (tw >= 36) this.seats.splice(1, 0, this.table.x + 12, this.table.x + tw - 12);
     this.seats = this.seats.map(function (x) { return { x: x, busy: null }; });
     this.screen = { x: mc - 25, y: 6, w: 50, h: 30 };
+    // wall clock: over the coffee nook when there's room beside the screen, otherwise over the glass wall
+    var c0 = this.glassX + 10, c1 = this.screen.x - 2;
+    this.clock = { x: c1 - c0 >= 25 ? Math.round((c0 + c1) / 2) - 10 : this.glassX - 5, y: 6, w: 21, h: 15 };
     // windows above the bench
     this.windows = []; var span = this.benchX1 - this.benchX0, n = Math.max(1, Math.floor(span / 110));
     for (var i = 0; i < n; i++) { var cx = this.benchX0 + (i + 0.5) * span / n; this.windows.push({ x: Math.round(cx - 18), y: 3, w: 36, h: 20 }); }
@@ -234,7 +269,8 @@
       this.equip.push({ kind: kind, x: x, w: w2, station: Math.round(x + w2 / 2), busy: null, phase: rnd() * 6 });
       x += w2 + 14 + Math.round(rnd() * 12); k++;
     }
-    this.maxPeople = Math.max(o.minOnScreen, Math.min(o.maxPeople, this.people.length, Math.floor(W / 50)));
+    this.maxPeople = Math.max(o.minOnScreen, Math.min(o.maxPeople, this.people.length, Math.floor(W / 50), this.equip.length + 1));
+    this.maxOnScreen = Math.max(this.maxPeople, Math.min(o.maxOnScreen, this.maxPeople + 1));
     var computer = this.equip.find(function (equipment) { return equipment.kind === "pc"; });
     if (!computer) {
       var spare = this.equip[this.equip.length - 1];
@@ -250,8 +286,28 @@
   // ---------- staffing ----------
   Scene.prototype.targetCount = function (date) {
     if (!this.isOpen(date)) return 0;
-    var p = londonParts(date, this.o.tz), elapsed = p.h * 60 + p.m - this.hours.start;
-    return Math.max(this.o.minOnScreen, Math.round(this.maxPeople * clamp(elapsed / 60, 0, 1)));
+    var ramp = clamp(this.minutesOpen(date) / Math.max(1, this.o.rampMinutes), 0, 1);
+    return Math.round(this.o.minOnScreen + (this.maxPeople - this.o.minOnScreen) * ramp);
+  };
+  Scene.prototype.minutesOpen = function (date) { var p = londonParts(date, this.o.tz); return p.h * 60 + p.m + date.getSeconds() / 60 - this.hours.start; };
+  Scene.prototype.minutesToClose = function (date) { var p = londonParts(date, this.o.tz); return this.hours.end - (p.h * 60 + p.m + date.getSeconds() / 60); };
+  Scene.prototype.shiftEnd = function (date, fraction) {
+    var s = this.o.shiftMinutes, minutes = s[0] + Math.random() * (s[1] - s[0]);
+    return +date + minutes * (fraction == null ? 1 : fraction) * 60000;
+  };
+  // the next person on today's rota who isn't already in; the cursor walks the whole team so everyone gets a turn
+  Scene.prototype.nextOnRota = function (date) {
+    var rota = this.rota(date);
+    for (var i = 0; i < rota.length; i++) {
+      var person = rota[(this.rotaCursor + i) % rota.length];
+      if (!this.agents.some(function (a) { return a.p === person; })) { this.rotaCursor = (this.rotaCursor + i + 1) % rota.length; return person; }
+    }
+    return null;
+  };
+  Scene.prototype.newAgent = function (person, date, extra) {
+    var a = { p: person, x: this.doorX("brk"), dir: -1, t: 0, energy: 2 + Math.floor(Math.random() * 3), state: "idle", timer: 0.3, hidden: null, shiftEnd: this.shiftEnd(date) };
+    if (extra) Object.keys(extra).forEach(function (k) { a[k] = extra[k]; });
+    this.agents.push(a); return a;
   };
   Scene.prototype.syncBusiness = function (date) {
     var open = this.isOpen(date), self = this;
@@ -261,11 +317,10 @@
       else {
         this.agents.forEach(function (agent) { agent.leaving = false; agent.closingDelay = null; });
         if (previous === false) {
-          var rota = this.rota(date);
           while (this.agents.filter(function (agent) { return !agent.hidden; }).length < this.o.minOnScreen) {
-            var person = rota.find(function (person) { return !self.agents.some(function (agent) { return agent.p === person; }); });
+            var person = this.nextOnRota(date);
             if (!person) break;
-            this.agents.push({ p: person, x: this.doorX("brk") - this.agents.length * 8, dir: -1, t: 0, energy: 2, state: "idle", timer: 0.5, hidden: null });
+            this.newAgent(person, date, { x: this.doorX("brk") - this.agents.length * 8, energy: 3, timer: 0.5 });
             this.openDoor("brk");
           }
         }
@@ -285,34 +340,39 @@
     if (this._rotaDay === p.ymd) return this._rota;
     var r = seeded(+p.ymd), list = this.people.slice();
     for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = list[i]; list[i] = list[j]; list[j] = t; }
-    this._rotaDay = p.ymd; this._rota = list; return list;
+    this._rotaDay = p.ymd; this._rota = list; this.rotaCursor = 0; return list;
   };
   Scene.prototype.onScreen = function (except) { return this.agents.filter(function (a) { return a !== except && !a.hidden && !a.hiding; }).length; };
   Scene.prototype.canHide = function (a) { return !this.openState || this.onScreen(a) >= this.o.minOnScreen; };
-  Scene.prototype.freeStation = function () { var f = this.equip.filter(function (e) { return !e.busy; }); return f.length ? pick(f) : null; };
+  // one person on a break and one in the store at a time, so the bench never empties out
+  Scene.prototype.away = function (where, except) { return this.agents.some(function (a) { return a !== except && (a.hidden === where || (a.state === "walk" && a.then === (where === "brk" ? "break" : where))); }); };
+  Scene.prototype.freeStation = function (near) {
+    var f = this.equip.filter(function (e) { return !e.busy; }); if (!f.length) return null;
+    return near == null ? pick(f) : f.reduce(function (best, e) { return Math.abs(e.station - near) < Math.abs(best.station - near) ? e : best; });
+  };
   Scene.prototype.release = function (a) { if (a.station) { a.station.busy = null; a.station = null; } if (a.seat) { a.seat.busy = null; a.seat = null; } };
   Scene.prototype.doorX = function (which) { return (which === "store" ? this.storeX : this.breakX) + 11; };
 
   // what to do next: store run, bench work, or a break
   Scene.prototype.decide = function (a) {
-    this.release(a);
+    var prev = a.station; this.release(a); a.waiting = false;
     if (!this.openState) {
       if (a.closingDelay > 0) { a.state = "idle"; a.timer = a.closingDelay; a.label = "Finishing for the day"; return; }
       a.leaving = true; return this.walkTo(a, this.doorX("brk"), "exit");
     }
     if (a.leaving && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "exit"); }
     if (a.leaving) a.leaving = false;
-    if (a.energy <= 0 && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "break"); }
-    if (!a.carry && Math.random() < 0.55 && this.canHide(a)) { a.hiding = true; return this.walkTo(a, this.doorX("store"), "store"); }
+    if (a.energy <= 0 && this.canHide(a) && !this.away("brk", a)) { a.hiding = true; return this.walkTo(a, this.doorX("brk"), "break"); }
+    if (!a.carry && Math.random() < 0.3 && this.canHide(a) && !this.away("store", a)) { a.hiding = true; return this.walkTo(a, this.doorX("store"), "store"); }
     var st = this.freeStation();
     if (st) { st.busy = a; a.station = st; return this.walkTo(a, st.station, "work"); }
-    a.state = "idle"; a.timer = 3 + Math.random() * 4; a.label = "Waiting for a free bench";
+    a.state = "idle"; a.timer = 3 + Math.random() * 4; a.label = "Waiting for a free bench"; a.waiting = true;
   };
   Scene.prototype.walkTo = function (a, x, then) { a.tx = x; a.then = then; a.state = "walk"; a.label = { store: "Off to the store", work: "Heading to the bench", "break": "Going for a break", exit: "Heading home", meet: "Going to a meeting" }[then]; };
   Scene.prototype.arrive = function (a) {
     var self = this;
     switch (a.then) {
-      case "work": a.state = "work"; a.timer = 12 + Math.random() * 22; a.label = this.workLabel(a.station); break;
+      case "work": a.state = "work"; a.timer = 30 + Math.random() * 30; a.label = this.workLabel(a.station); break;
       case "store": this.openDoor("store"); a.hidden = "store"; a.timer = 3 + Math.random() * 4; a.label = "In the store"; break;
       case "break": this.openDoor("brk"); a.hidden = "brk"; a.timer = 18 + Math.random() * 25; a.label = "On a break"; break;
       case "exit": this.openDoor("brk"); a.gone = true; break;
@@ -328,7 +388,7 @@
   Scene.prototype.emerge = function (a, from) {
     this.openDoor(from); a.hidden = null; a.x = this.doorX(from); a.state = "idle"; a.timer = 0.4;
     if (from === "store") { a.carry = pick(["#f2b84b", "#ff8a65", "#5fd3b3", "#9ec9e8", "#c9a15a"]); }
-    if (from === "brk") a.energy = 2 + Math.floor(Math.random() * 3);
+    if (from === "brk") a.energy = 3 + Math.floor(Math.random() * 3);
   };
 
   // ---------- simulation ----------
@@ -336,19 +396,28 @@
     var self = this, speed = 20;
     var open = this.syncBusiness(date);
     // staffing: arrivals come in from the break room (coats and lockers), leavers go out the same way
+    // arrivals are spaced a few seconds apart and the lab never holds more than maxOnScreen, so a
+    // replacement can walk in while the person they're relieving heads home
     var want = this.targetCount(date), present = this.agents.filter(function (a) { return !a.leaving; });
-    if (present.length < want && !this.agents.some(function (a) { return a.state === "walk" && Math.abs(a.x - self.doorX("brk")) < 14; })) {
-      var rota = this.rota(date), next = rota.find(function (p) { return !self.agents.some(function (a) { return a.p === p; }); });
-      if (next) { var a0 = { p: next, x: this.doorX("brk"), dir: -1, t: 0, energy: 2 + Math.floor(Math.random() * 3), state: "idle", timer: 0.3, hidden: null }; this.openDoor("brk"); this.agents.push(a0); }
+    this.arriveT = (this.arriveT || 0) - dt;
+    if (present.length < want && this.agents.length < this.maxOnScreen && this.arriveT <= 0 && !this.agents.some(function (a) { return a.state === "walk" && Math.abs(a.x - self.doorX("brk")) < 14; })) {
+      var next = this.nextOnRota(date);
+      if (next) { this.newAgent(next, date); this.openDoor("brk"); this.arriveT = 3 + Math.random() * 4; }
     } else if (open && present.length > want) {
       var cand = present.filter(function (a) { return a.state !== "meet"; }).pop(); if (cand) { cand.leaving = true; if (cand.state !== "hidden") this.decide(cand); }
+    } else if (open && present.length >= want && this.minutesOpen(date) > this.o.rampMinutes && this.minutesToClose(date) > 20 && !this.agents.some(function (a) { return a.leaving; })) {
+      // shift change: one person at a time finishes their current task and goes home; the next on the rota replaces them
+      var done = this.agents.find(function (a) { return a.shiftEnd <= +date && a.state !== "meet" && a.hidden !== "store"; });
+      if (done) { done.leaving = true; if (done.state === "idle") done.timer = 0; }
     }
-    // meetings behind the glass wall: two or three people, every so often
+    // nobody stands around while a station is free
+    if (open && this.equip.some(function (e) { return !e.busy; })) this.agents.forEach(function (a) { if (a.waiting && a.state === "idle") a.timer = 0; });
+    // meetings behind the glass wall: two or three people, every so often, never emptying the bench
     this.meetT -= dt;
     if (open && !this.meeting && this.meetT <= 0) {
       var free = this.agents.filter(function (a) { return !a.hidden && !a.hiding && !a.leaving && (a.state === "work" || a.state === "idle"); });
       var n = Math.min(this.seats.length, free.length >= 3 && Math.random() < 0.5 ? 3 : 2);
-      if (free.length >= 2) {
+      if (free.length >= 2 && present.length >= 4) {
         this.meeting = { left: 22 + Math.random() * 15, who: [] };
         for (var i = 0; i < n; i++) { var a = free.splice(Math.floor(Math.random() * free.length), 1)[0], s = this.seats.filter(function (z) { return !z.busy; })[0]; if (!a || !s) break; this.release(a); s.busy = a; a.seat = s; this.walkTo(a, s.x, "meet"); this.meeting.who.push(a); }
       } else this.meetT = 10;
@@ -358,7 +427,7 @@
       if (allSeated) this.meeting.left -= dt;
       if (this.meeting.left <= 0 || this.meeting.who.some(function (a) { return a.gone; })) {
         this.meeting.who.forEach(function (a) { if (!a.gone) self.decide(a); });
-        this.meeting = null; this.meetT = 35 + Math.random() * 40;
+        this.meeting = null; this.meetT = 90 + Math.random() * 60;
       }
     }
     this.agents.forEach(function (a) {
@@ -472,6 +541,10 @@
     });
     var lights = true;
     this.equip.forEach(function (e) { self.drawEquip(e, tms, lights); });
+    // --- wall clock and coffee nook
+    this.drawClock(date);
+    var brewing = open && this.agents.some(function (a) { return a.state === "walk" && a.then === "meet"; });
+    this.drawCoffee(tms, brewing);
     // --- meeting table and chairs (chair backs behind people, table in front)
     var tb = this.table, ty = this.floorY - 13;
     this.seats.forEach(function (z) { g.fillStyle = "#56637a"; g.fillRect(z.x - 4, ty - 6, 8, 2); g.fillRect(z.x - 4, ty - 6, 1, 12); g.fillRect(z.x + 3, ty - 6, 1, 12); });
@@ -488,18 +561,25 @@
       var sx = col * cs, sy = a.p.row * cs, X = Math.round(a.x - cs / 2), Y = self.feetY - cs + 2 + oy;
       if (flip) g.drawImage(self.mirror, self.mirror.width - sx - cs, sy, cs, cs, X, Y, cs, cs);
       else g.drawImage(self.sheet, sx, sy, cs, cs, X, Y, cs, cs);
-      if (a.carry && a.state === "walk") { var hx2 = flip ? X + 13 : X + 17; g.fillStyle = "#1e2a2e"; g.fillRect(hx2 - 1, Y + 19, 5, 6); g.fillStyle = a.carry; g.fillRect(hx2, Y + 20, 3, 4); }
+      if (a.carry && a.state === "walk") { // a glass flask of reagent from the store (coffee stays in the meeting room)
+        var hx2 = flip ? X + 12 : X + 16; g.fillStyle = "#4f7f92";
+        g.fillRect(hx2 + 1, Y + 18, 3, 1); g.fillRect(hx2 + 2, Y + 19, 1, 2); g.fillRect(hx2 + 1, Y + 21, 1, 1); g.fillRect(hx2 + 3, Y + 21, 1, 1);
+        g.fillRect(hx2, Y + 22, 1, 2); g.fillRect(hx2 + 4, Y + 22, 1, 2); g.fillRect(hx2, Y + 24, 5, 1);
+        g.fillStyle = a.carry; g.fillRect(hx2 + 2, Y + 21, 1, 1); g.fillRect(hx2 + 1, Y + 22, 3, 2);
+      }
       a.box = [X + 8, Y, 16, cs - oy];
       if (self.stacked && a.x >= self.rowWidth) { a.box[0] -= self.rowWidth; a.box[1] += self.H + 8; }
     });
     // table top and seat fronts in front of seated people
     g.fillStyle = "#c49a6c"; g.fillRect(tb.x, ty, tb.w, 2); g.fillStyle = "#8a6a48"; g.fillRect(tb.x + 2, ty + 2, 2, this.floorY - ty - 2); g.fillRect(tb.x + tb.w - 4, ty + 2, 2, this.floorY - ty - 2);
-    if (this.meeting) { g.fillStyle = "#fbfaf6"; g.fillRect(tb.x + 6, ty - 1, 4, 1); g.fillStyle = "#2a3440"; g.fillRect(tb.x + tb.w - 12, ty - 3, 6, 3); }
+    if (this.meeting) { g.fillStyle = "#fbfaf6"; g.fillRect(tb.x + 6, ty - 1, 4, 1); if (tb.w >= 40) { g.fillStyle = "#2a3440"; g.fillRect(tb.x + tb.w - 12, ty - 3, 6, 3); } }
+    this.drawCups(tms, ty);
     this.seats.forEach(function (z) { g.fillStyle = "#3c4c53"; g.fillRect(z.x - 4, ty + 3, 8, 2); g.fillRect(z.x - 3, ty + 5, 1, self.floorY - ty - 5); g.fillRect(z.x + 2, ty + 5, 1, self.floorY - ty - 5); });
     // --- one-pixel floor line
     g.fillStyle = "#4d6670"; g.fillRect(0, this.floorY, W, 1);
     if (!open) {
       g.fillStyle = "rgba(3,10,16,.56)"; g.fillRect(0, 26, W, H - 26);
+      g.fillStyle = "#ff3b3b"; g.fillRect(this.nook.x + 13, this.floorY - 24, 1, 1); // coffee machine standby
       this.equip.forEach(function (equipment) {
         if (equipment.kind === "pc") { g.fillStyle = "#ff3b3b"; g.fillRect(equipment.x + 13, self.benchTop - 5, 1, 1); }
         if (equipment.kind === "incub" || equipment.kind === "centri") { g.fillStyle = "#5fd3b3"; g.fillRect(equipment.x + equipment.w - 5, self.benchTop - 6, 1, 1); }
@@ -515,9 +595,7 @@
       }
     } else {
       var phone = this.phoneArt;
-      g.fillStyle = "#1e2a2e"; g.fillRect(phone.x, phone.y + 3, 12, 6); g.fillRect(phone.x - 1, phone.y, 14, 3);
-      g.fillStyle = "#cfd8db"; g.fillRect(phone.x, phone.y + 1, 4, 2); g.fillRect(phone.x + 8, phone.y + 1, 4, 2);
-      g.fillStyle = "#5fd3b3"; g.fillRect(phone.x + 4, phone.y + 4, 4, 2);
+      PHONE.forEach(function (row, py) { for (var px = 0; px < row.length; px++) { var c = PHONE_COLOURS[row[px]]; if (c) { g.fillStyle = c; g.fillRect(phone.x + px, phone.y + py, 1, 1); } } });
     }
     var sign = open ? "OPEN" : "CLOSED", signWidth = sign.length * 4 + 3;
     var signX = clamp(this.breakX + 11 - signWidth / 2, this.stacked ? this.rowWidth + 1 : 1, W - signWidth - 1);
@@ -568,6 +646,78 @@
     g.restore();
     g.fillStyle = "rgba(255,255,255,.08)"; g.fillRect(x, y, w, 1);
   };
+  // digital wall clock: HH:MM with a blinking colon, BST or GMT beneath
+  Scene.prototype.drawClock = function (date) {
+    var g = this.g, c = this.clock, key = Math.floor(+date / 60000);
+    if (this._clockKey !== key) { this._clockKey = key; this._clock = clockText(date, this.o.tz); }
+    var r = this._clock, lit = this.openState ? "#5fd3b3" : "#2f8f6f";
+    g.fillStyle = "#2b3a40"; g.fillRect(c.x, c.y, c.w, c.h);
+    g.fillStyle = "#0f1a1c"; g.fillRect(c.x + 1, c.y + 1, c.w - 2, c.h - 2);
+    g.fillStyle = "#56637a"; g.fillRect(c.x + 10, c.y - 2, 1, 2); // hanging hook
+    text(g, r.time.slice(0, 2), c.x + 2, c.y + 2, lit);
+    text(g, r.time.slice(3), c.x + 12, c.y + 2, lit);
+    if (this.reduced || Math.floor(+date / 1000) % 2 === 0) { g.fillStyle = lit; g.fillRect(c.x + 10, c.y + 3, 1, 1); g.fillRect(c.x + 10, c.y + 5, 1, 1); }
+    var zw = r.zone.length * 4 - 1;
+    if (zw > 0) text(g, r.zone, c.x + Math.round((c.w - zw) / 2), c.y + 8, "#9fb3bb");
+    this.el.setAttribute("data-clock", r.time + " " + r.zone);
+  };
+  // espresso machine on a side table; it brews while people head to a meeting
+  Scene.prototype.drawCoffee = function (tms, brewing) {
+    var g = this.g, n = this.nook, x = n.x, fy = this.floorY, top = fy - 12, mx = x + 1, by = top;
+    // side table with a bag of beans on the shelf
+    g.fillStyle = "#c49a6c"; g.fillRect(x, top, n.w, 2);
+    g.fillStyle = "#8a6a48"; g.fillRect(x + 1, top + 2, 2, fy - top - 2); g.fillRect(x + n.w - 3, top + 2, 2, fy - top - 2); g.fillRect(x + 1, fy - 3, n.w - 2, 1);
+    g.fillStyle = "#7a5230"; g.fillRect(x + 6, fy - 8, 5, 5); g.fillStyle = "#f2b84b"; g.fillRect(x + 7, fy - 6, 3, 1);
+    // cup warmer on top with two espresso cups
+    g.fillStyle = "#93a3ad"; g.fillRect(mx, by - 14, 16, 1);
+    g.fillStyle = "#f3efe6"; g.fillRect(mx + 3, by - 16, 2, 2); g.fillRect(mx + 7, by - 16, 2, 2);
+    // brushed steel body with teal side panels
+    g.fillStyle = "#e3e7ea"; g.fillRect(mx, by - 13, 16, 7);
+    g.fillStyle = "#f6f9fa"; g.fillRect(mx + 3, by - 13, 1, 7);
+    g.fillStyle = "#2f8f6f"; g.fillRect(mx, by - 13, 2, 7); g.fillRect(mx + 14, by - 13, 2, 7);
+    g.fillStyle = "#5fd3b3"; g.fillRect(mx, by - 13, 2, 1); g.fillRect(mx + 14, by - 13, 2, 1);
+    // pressure gauge, its needle lifts while brewing
+    g.fillStyle = "#fbfaf6"; g.fillRect(mx + 7, by - 12, 3, 3); g.fillStyle = "#ff3b3b"; g.fillRect(brewing ? mx + 9 : mx + 7, by - 11, 1, 1);
+    // two group heads with portafilters and handles
+    g.fillStyle = "#56637a"; g.fillRect(mx + 3, by - 6, 3, 1); g.fillRect(mx + 10, by - 6, 3, 1);
+    g.fillStyle = "#2b3a40"; g.fillRect(mx + 2, by - 5, 5, 1); g.fillRect(mx + 9, by - 5, 5, 1);
+    g.fillStyle = "#1e2a2e"; g.fillRect(mx - 1, by - 5, 3, 1); g.fillRect(mx + 14, by - 5, 3, 1);
+    // steam wand
+    g.fillStyle = "#cfd8db"; g.fillRect(mx + 16, by - 12, 1, 1); g.fillRect(mx + 17, by - 11, 1, 7);
+    // drip tray with grille
+    g.fillStyle = "#7f8f99"; g.fillRect(mx, by - 2, 16, 2);
+    g.fillStyle = "#56637a"; for (var i = 1; i < 16; i += 2) g.fillRect(mx + i, by - 2, 1, 1);
+    // power light
+    g.fillStyle = this.openState ? (brewing && Math.floor(tms / 250) % 2 ? "#f2b84b" : "#5fd3b3") : "#ff3b3b"; g.fillRect(mx + 12, by - 12, 1, 1);
+    if (brewing) {
+      g.fillStyle = "#f3efe6"; g.fillRect(mx + 3, by - 3, 3, 1); g.fillRect(mx + 3, by - 4, 1, 1); g.fillRect(mx + 5, by - 4, 1, 1); g.fillRect(mx + 6, by - 4, 1, 1); // cup on the tray
+      if (!this.reduced && Math.floor(tms / 150) % 2) { g.fillStyle = "#5a3a22"; g.fillRect(mx + 4, by - 4, 1, 1); }
+      this.drawSteam(mx + 17, by - 4, tms, 0.5, 3);
+    }
+  };
+  // a few pixels of steam drifting up from (x, y); each wisp rises, sways and fades
+  Scene.prototype.drawSteam = function (x, y, tms, strength, height) {
+    var g = this.g, h = height || 6;
+    if (this.reduced) { g.fillStyle = "rgba(255,255,255," + (0.45 * strength) + ")"; g.fillRect(x, y - 2, 1, 1); g.fillRect(x + 1, y - 4, 1, 1); return; }
+    for (var k = 0; k < 4; k++) {
+      var life = ((tms / 1100 + k / 4 + x * 0.13) % 1), rise = Math.floor(life * h);
+      g.fillStyle = "rgba(236,246,250," + (0.95 * strength * (1 - life * 0.8)).toFixed(3) + ")";
+      g.fillRect(x + Math.round(Math.sin(life * 6.3 + x) * 0.9), y - 1 - rise, 1, 1);
+    }
+  };
+  // a mug in front of everyone seated at the table, steaming
+  Scene.prototype.drawCups = function (tms, ty) {
+    var g = this.g, tb = this.table, seats = this.seats, self = this;
+    var lo = tb.x + 15, hi = tb.x + tb.w - (tb.w >= 40 ? 17 : 5); if (hi < lo) { lo = tb.x + 2; hi = tb.x + tb.w - 6; } // clear of the phone and laptop
+    var mugs = ["#f3efe6", "#5fd3b3", "#f2b84b", "#ff8a65", "#9ec9e8"];
+    seats.forEach(function (z, i) {
+      var a = z.busy; if (!a || a.state !== "meet") return;
+      var cx = seats.length > 1 ? Math.round(lo + (hi - lo) * i / (seats.length - 1)) : Math.round((lo + hi) / 2);
+      g.fillStyle = mugs[a.p.row % mugs.length]; g.fillRect(cx, ty - 3, 3, 3); g.fillRect(cx + 3, ty - 2, 1, 1);
+      g.fillStyle = "#5a3a22"; g.fillRect(cx, ty - 3, 3, 1);
+      self.drawSteam(cx + 1, ty - 3, tms, 1, 6);
+    });
+  };
   Scene.prototype.drawEquip = function (e, tms, lights) {
     var g = this.g, x = e.x, y = this.benchTop, k = e.kind, on = Math.sin(tms / 400 + e.phase) > 0;
     if (k === "hood") { g.fillStyle = "#d9e0e4"; g.fillRect(x, y - 26, e.w, 26); g.fillStyle = "#b9c6cc"; g.fillRect(x, y - 26, e.w, 4); g.fillStyle = "rgba(150,205,235,.7)"; g.fillRect(x + 3, y - 19, e.w - 6, 15); g.fillStyle = "#f2b84b"; g.fillRect(x + e.w - 6, y - 25, 2, 2); if (e.busy) { g.fillStyle = "#ff8a65"; g.fillRect(x + 9, y - 7, 2, 4); g.fillStyle = "#5fd3b3"; g.fillRect(x + 15, y - 6, 3, 3); } }
@@ -599,11 +749,15 @@
   // place people straight into the scene (on load, or after a preview time jump)
   Scene.prototype.reseed = function () {
     var self = this, date0 = this.now(), want = this.targetCount(date0), rota = this.rota(date0);
-    this.equip.forEach(function (e) { e.busy = null; }); this.seats.forEach(function (z) { z.busy = null; }); this.agents = []; this.meeting = null; this.meetT = 8;
+    this.equip.forEach(function (e) { e.busy = null; }); this.seats.forEach(function (z) { z.busy = null; }); this.agents = []; this.meeting = null; this.meetT = 20; this.arriveT = 0;
+    // a later page load meets the shift that would be in by now, not the first few names on the rota
+    var shift = (this.o.shiftMinutes[0] + this.o.shiftMinutes[1]) / 2, rotated = Math.max(0, this.minutesOpen(date0) - this.o.rampMinutes) / shift * this.maxPeople;
+    this.rotaCursor = rota.length ? Math.floor(rotated) % rota.length : 0;
     for (var i = 0; i < want; i++) {
-      var a = { p: rota[i], x: 0, dir: 1, t: Math.random() * 3, energy: 1 + Math.floor(Math.random() * 3), state: "idle", timer: 0, hidden: null };
-      var st = this.freeStation();
-      if (i >= 2 && Math.random() < 0.25) { a.hidden = Math.random() < 0.5 ? "store" : "brk"; a.state = "hidden"; a.timer = 2 + Math.random() * 10; }
+      var person = this.nextOnRota(date0); if (!person) break;
+      var a = { p: person, x: 0, dir: 1, t: Math.random() * 3, energy: 1 + Math.floor(Math.random() * 3), state: "idle", timer: 0, hidden: null, shiftEnd: this.shiftEnd(date0, Math.random()) };
+      var st = this.freeStation(), away = i >= 2 && Math.random() < 0.25 ? (Math.random() < 0.5 ? "store" : "brk") : null;
+      if (away && !this.away(away)) { a.hidden = away; a.state = "hidden"; a.timer = 2 + Math.random() * 10; }
       else if (st) { st.busy = a; a.station = st; a.x = st.station; a.state = "work"; a.timer = 2 + Math.random() * 20; a.label = self.workLabel(st); }
       else { a.x = this.glassX + 20 + i * 4; a.timer = 1; }
       this.agents.push(a);
@@ -671,6 +825,7 @@
   root.LabskinFooter = {
     mount: mount,
     isOpen: function (date, hours, tz) { return isOpen(new Date(date), hoursPolicy(hours || DEFAULTS.hours), tz || DEFAULTS.tz); },
+    clock: function (date, tz) { return clockText(new Date(date), tz || DEFAULTS.tz); },
     debug: function (cfg) { // previews only: { time: Date|number|null, speed: number, weather: "rain"|…|"live" }
       scenes.forEach(function (s) {
         if ("time" in cfg) { s.debugTime = cfg.time == null ? null : +new Date(cfg.time); if (s.equip) s.reseed(); }
