@@ -155,6 +155,66 @@
 		6px 10px #ff6f91;
 }
 
+.footer-lab-current-footer .footer-pixel-heart[data-icon="tube"]::before {
+	box-shadow:
+		2px 0 #e7f2f5,
+		4px 0 #e7f2f5,
+		6px 0 #e7f2f5,
+		8px 0 #e7f2f5,
+		10px 0 #e7f2f5,
+		12px 0 #e7f2f5,
+		4px 2px #9ccbd8,
+		6px 2px #35505a,
+		8px 2px #35505a,
+		10px 2px #9ccbd8,
+		4px 4px #9ccbd8,
+		6px 4px #5fd3b3,
+		8px 4px #c8f7ea,
+		10px 4px #9ccbd8,
+		4px 6px #9ccbd8,
+		6px 6px #5fd3b3,
+		8px 6px #5fd3b3,
+		10px 6px #9ccbd8,
+		4px 8px #9ccbd8,
+		6px 8px #5fd3b3,
+		8px 8px #5fd3b3,
+		10px 8px #9ccbd8,
+		6px 10px #2f8f6f,
+		8px 10px #2f8f6f;
+}
+
+.footer-lab-current-footer .footer-pixel-heart[data-icon="brain"]::before {
+	box-shadow:
+		4px 0 #ff9ab3,
+		6px 0 #ff9ab3,
+		8px 0 #ff9ab3,
+		2px 2px #ff9ab3,
+		4px 2px #d9577a,
+		6px 2px #ff9ab3,
+		8px 2px #d9577a,
+		10px 2px #ff9ab3,
+		0 4px #ff9ab3,
+		2px 4px #d9577a,
+		4px 4px #ff9ab3,
+		6px 4px #ff9ab3,
+		8px 4px #ff9ab3,
+		10px 4px #d9577a,
+		12px 4px #ff9ab3,
+		0 6px #ff9ab3,
+		2px 6px #ff9ab3,
+		4px 6px #d9577a,
+		6px 6px #ff9ab3,
+		8px 6px #d9577a,
+		10px 6px #ff9ab3,
+		12px 6px #ff9ab3,
+		2px 8px #ff9ab3,
+		4px 8px #ff9ab3,
+		6px 8px #d9577a,
+		8px 8px #ff9ab3,
+		10px 8px #ff9ab3,
+		8px 10px #ff6f91;
+}
+
 @media (max-width: 699px) {
 	.footer-lab-meeples-footer .lsf-scene {
 		min-height: 304px;
