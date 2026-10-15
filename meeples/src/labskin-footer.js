@@ -276,7 +276,10 @@
       var spare = this.equip[this.equip.length - 1];
       if (spare) this.botComputer = { kind: "pc", x: spare.x, w: 18, station: spare.station, phase: 0 };
     } else this.botComputer = computer;
-    this.phoneArt = { x: this.table.x + 2, y: this.floorY - 22, w: 12, h: 9 }; // base row rests on the table top (floorY - 13)
+    this.phoneArt = { x: this.table.x + this.table.w - 14, y: this.floorY - 22, w: 12, h: 9 }; // right end; base rests on the table top (floorY - 13)
+    // meetings fill the seats furthest from the phone first, so it never hides anyone sitting down
+    var phoneMid = this.phoneArt.x + 6;
+    this.seatOrder = this.seats.slice().sort(function (a, b) { return Math.abs(b.x - phoneMid) - Math.abs(a.x - phoneMid); });
     this.botArt = { x: (this.botComputer ? this.botComputer.station : this.benchX0 + 12) - 16, y: this.feetY - 30, w: 32, h: 32 };
     this.clouds = []; for (var c = 0; c < Math.ceil(W / 50); c++) this.clouds.push({ x: rnd() * W, y: 3 + rnd() * 12, s: 0.6 + rnd() * 0.8 });
     this.stars = []; for (var s2 = 0; s2 < W / 5; s2++) this.stars.push({ x: rnd() * W, y: rnd() * 22, t: rnd() * 6 });
@@ -419,7 +422,7 @@
       var n = Math.min(this.seats.length, free.length >= 3 && Math.random() < 0.5 ? 3 : 2);
       if (free.length >= 2 && present.length >= 4) {
         this.meeting = { left: 22 + Math.random() * 15, who: [] };
-        for (var i = 0; i < n; i++) { var a = free.splice(Math.floor(Math.random() * free.length), 1)[0], s = this.seats.filter(function (z) { return !z.busy; })[0]; if (!a || !s) break; this.release(a); s.busy = a; a.seat = s; this.walkTo(a, s.x, "meet"); this.meeting.who.push(a); }
+        for (var i = 0; i < n; i++) { var a = free.splice(Math.floor(Math.random() * free.length), 1)[0], s = this.seatOrder.filter(function (z) { return !z.busy; })[0]; if (!a || !s) break; this.release(a); s.busy = a; a.seat = s; this.walkTo(a, s.x, "meet"); this.meeting.who.push(a); }
       } else this.meetT = 10;
     }
     if (this.meeting) {
@@ -572,7 +575,7 @@
     });
     // table top and seat fronts in front of seated people
     g.fillStyle = "#c49a6c"; g.fillRect(tb.x, ty, tb.w, 2); g.fillStyle = "#8a6a48"; g.fillRect(tb.x + 2, ty + 2, 2, this.floorY - ty - 2); g.fillRect(tb.x + tb.w - 4, ty + 2, 2, this.floorY - ty - 2);
-    if (this.meeting) { g.fillStyle = "#fbfaf6"; g.fillRect(tb.x + 6, ty - 1, 4, 1); if (tb.w >= 40) { g.fillStyle = "#2a3440"; g.fillRect(tb.x + tb.w - 12, ty - 3, 6, 3); } }
+    if (this.meeting && tb.w >= 40) { g.fillStyle = "#2a3440"; g.fillRect(tb.x + 2, ty - 3, 6, 3); } // laptop at the far end from the phone
     this.drawCups(tms, ty);
     this.seats.forEach(function (z) { g.fillStyle = "#3c4c53"; g.fillRect(z.x - 4, ty + 3, 8, 2); g.fillRect(z.x - 3, ty + 5, 1, self.floorY - ty - 5); g.fillRect(z.x + 2, ty + 5, 1, self.floorY - ty - 5); });
     // --- one-pixel floor line
@@ -708,7 +711,7 @@
   // a mug in front of everyone seated at the table, steaming
   Scene.prototype.drawCups = function (tms, ty) {
     var g = this.g, tb = this.table, seats = this.seats, self = this;
-    var lo = tb.x + 15, hi = tb.x + tb.w - (tb.w >= 40 ? 17 : 5); if (hi < lo) { lo = tb.x + 2; hi = tb.x + tb.w - 6; } // clear of the phone and laptop
+    var lo = tb.x + (tb.w >= 40 ? 10 : 2), hi = tb.x + tb.w - 18; if (hi < lo) { lo = tb.x + 2; hi = tb.x + tb.w - 6; } // between the laptop and the phone
     var mugs = ["#f3efe6", "#5fd3b3", "#f2b84b", "#ff8a65", "#9ec9e8"];
     seats.forEach(function (z, i) {
       var a = z.busy; if (!a || a.state !== "meet") return;
