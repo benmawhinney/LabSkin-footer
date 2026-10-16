@@ -48,6 +48,8 @@ Then propose a redirect map (old URL, new URL) for the dead links, the two Conta
 
 ## Step 2: redirect every old URL
 
+> **Production constraint (16 Oct):** Ben has no access to `.htaccess` on the OVHcloud production server. The production plan must work entirely from inside WordPress, using the **Redirection** plugin (regex rule `^/index\.php/(.*)` to `/$1`, added only *after* the permalinks have been switched, or it loops), plus its 404 log. The `.htaccess` rule below is for staging, or for production if access is granted later. In Step 0, also test on production whether WordPress already receives non-`index.php` URLs: `/about` rendered the theme's 404 page with HubSpot tracking, which suggests it does.
+
 - Add a single rule above the WordPress block that 301s any client request for `/index.php/<path>` to `/<path>`, preserving the query string. Match on `THE_REQUEST`, so WordPress's own internal rewrite to `index.php` never loops:
 
   ```apache
