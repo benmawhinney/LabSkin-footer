@@ -215,6 +215,21 @@
 		8px 10px #ff6f91;
 }
 
+/* real emoji when the device can draw it in colour; the pixel icons above are the fallback */
+.footer-lab-current-footer .footer-pixel-heart[data-emoji] {
+	width: auto;
+	height: auto;
+	transform: none;
+	font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+	font-style: normal;
+	line-height: 1;
+	image-rendering: auto;
+}
+
+.footer-lab-current-footer .footer-pixel-heart[data-emoji]::before {
+	content: none;
+}
+
 @media (max-width: 699px) {
 	.footer-lab-meeples-footer .lsf-scene {
 		min-height: 304px;
