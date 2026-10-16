@@ -14,14 +14,14 @@ The team posts on LinkedIn with square photos and rounded corners. The Meet the 
 - 17 people, shown as one vertical sequence: photo, then name as a heading, then role in bold.
 - The photos are a mix of formats and sources: PNGs exported from Canva (`Untitled-Design-1.png`, `Labskin-Meet-the-team-1.png`), large JPEGs (`*-scaled.jpg`) and an unnamed LinkedIn download (`1761244676560.jpeg`).
 - **Every image has empty alt text.**
-- There is a stray image after Erin's bio that reuses Mariyah's file (`Labskin-Meet-the-team-1.png`). It is probably a leftover.
+- **Mariyah Ahmed has no photo.** Her slot uses `2026/08/Labskin-Meet-the-team-1.png`, which is a 1080 x 1080 image that is 100% white (checked pixel by pixel in the browser on 16 Oct 2026), so the page shows a blank square. The same blank file is used again in the "Talk to a Labskin expert" section after Erin's bio. Matteo's similarly named `Labskin-Meet-the-team-1-1.png` is a real photo. Most likely the Canva export for Mariyah failed. Ben is sourcing the correct headshot; until it arrives, do not invent or substitute one.
 - No block or page-builder classes were visible from outside, so check how the page is built first.
 
 ## Step 0: audit and report (no changes)
 
 1. How the page is built: block editor, a page builder or the theme. List the image blocks and their classes.
 2. The pixel size, aspect ratio and file size of each of the 17 photos.
-3. Whether the stray image after Erin's bio can be removed.
+3. Whether the blank image in the "Talk to a Labskin expert" section is meant to show something (for example a team photo) or can be removed.
 4. Ben will drop one or two LinkedIn post images into `reference/linkedin/`. Measure the corner radius as a percentage of the image width, and note any border, background colour or shadow. If no reference arrives, use 8% of the width as a placeholder and say so.
 
 Report and wait for Ben's OK.
@@ -51,7 +51,7 @@ Report and wait for Ben's OK.
 
 - Give every photo alt text in the form "Photo of Dr Nicola Kingswell, Scientific Director". Set it in the Media Library, so it is reused wherever the image appears.
 - Produce square WebP versions (for example 640 x 640) with the existing optimiser in `scripts/` (dry run first), and give them sensible file names (`nicola-kingswell.webp`). Keep the originals.
-- Remove the stray duplicate image if Step 0 confirmed it is a leftover.
+- Replace Mariyah's blank image with her real headshot once Ben supplies it, and deal with the blank image in the call-to-action section as agreed in Step 0.
 
 ## Constraints
 
