@@ -15,7 +15,8 @@ The team posts on LinkedIn with square photos and rounded corners. The Meet the 
 - The photos are a mix of formats and sources: PNGs exported from Canva (`Untitled-Design-1.png`, `Labskin-Meet-the-team-1.png`), large JPEGs (`*-scaled.jpg`) and an unnamed LinkedIn download (`1761244676560.jpeg`).
 - **Every image has empty alt text.**
 - **Mariyah Ahmed has no photo.** Her slot uses `2026/08/Labskin-Meet-the-team-1.png`, which is a 1080 x 1080 image that is 100% white (checked pixel by pixel in the browser on 16 Oct 2026), so the page shows a blank square. The same blank file is used again in the "Talk to a Labskin expert" section after Erin's bio. Matteo's similarly named `Labskin-Meet-the-team-1-1.png` is a real photo. Most likely the Canva export for Mariyah failed. Ben is sourcing the correct headshot; until it arrives, do not invent or substitute one.
-- No block or page-builder classes were visible from outside, so check how the page is built first.
+- Every image is a core `wp-block-image size-full` block shown at 340 x 340, whatever the source shape. The sources range from square (Stewart, 800 x 800) to tall portrait (Nicola and Bart, 740 x 940; Holly and Emma, 3:4). WordPress crops or squashes the portraits from the centre with no thought for where the face is. Ben confirmed Nicola's is visibly off. In Step 0, report the computed `object-fit` for each image, so we know whether they are cropped or distorted.
+- No page-builder classes were found; the photos are core blocks.
 
 ## Step 0: audit and report (no changes)
 
@@ -44,7 +45,7 @@ Report and wait for Ben's OK.
   }
   ```
 
-- Where a face is cropped badly, set a per-image `object-position` instead of re-cropping the file.
+- Where a face is cropped badly, set a per-image `object-position` as a quick fix. Better still, make a proper square crop from the original upload for each portrait, centred on the face with the eyes about a third of the way down, matching the LinkedIn framing. Show Ben the crops before replacing anything.
 - Optional and only with Ben's OK: lay the team out as a grid (3 columns on desktop, 2 on tablet, 1 on mobile), keeping the current order.
 
 ## Step 2: images and accessibility
