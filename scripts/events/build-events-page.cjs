@@ -49,21 +49,21 @@ function fullDate(start, end) {
 // ---- Blocks ----------------------------------------------------------------
 
 // Colours come from the theme palette, chosen for contrast: dark text on the
-// brand teal (7.3:1), teal on near-black (7.3:1), grey tag text on white (5.2:1).
-// White on teal is only 2.6:1, so it is not used.
+// brand teal (7.3:1), grey tag text on white (5.2:1). White on the brand teal
+// is only 2.6:1, so it is not used.
 const SHORT_MONTHS = MONTHS.map((m) => m.slice(0, 3).toUpperCase());
 
 // Date badge: "4–5" over "NOV"; "30–1" over "NOV–DEC" across months.
-function badge(start, end, dark) {
+function badge(start, end) {
 	const s = day(start), e = day(end);
 	const days = start === end ? `${s.getUTCDate()}` : `${s.getUTCDate()}–${e.getUTCDate()}`;
 	const months = s.getUTCMonth() === e.getUTCMonth() ? SHORT_MONTHS[s.getUTCMonth()] : `${SHORT_MONTHS[s.getUTCMonth()]}–${SHORT_MONTHS[e.getUTCMonth()]}`;
 	const line = (content, typography) => b('core/paragraph', {
-		content, textColor: dark ? 'secondary' : 'primary',
+		content, textColor: 'primary',
 		style: { typography: { textAlign: 'center', lineHeight: '1.1', ...typography }, spacing: { margin: { top: '0', bottom: '0' } } },
 	});
 	return b('core/group', {
-		backgroundColor: dark ? 'primary' : 'secondary',
+		backgroundColor: 'secondary',
 		style: {
 			border: { radius: '10px' },
 			spacing: { padding: { top: '12px', right: '4px', bottom: '12px', left: '4px' }, blockGap: '4px' },
@@ -76,11 +76,24 @@ function badge(start, end, dark) {
 	]);
 }
 
-const tag = (text) => b('core/paragraph', {
-	content: text,
-	textColor: 'tertiary',
-	style: { typography: { fontSize: '13px', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '1.5px' }, spacing: { margin: { bottom: '0' } } },
-});
+// Type tag. Webinars get a teal pill (same colours as the date badge) so they
+// stand out in the list; it sits in a flex group so the pill fits its text.
+function tag(text, highlight) {
+	const typography = { fontSize: '13px', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '1.5px' };
+	if (!highlight) {
+		return b('core/paragraph', { content: text, textColor: 'tertiary', style: { typography, spacing: { margin: { bottom: '0' } } } });
+	}
+	return b('core/group', { layout: { type: 'flex', flexWrap: 'nowrap' } }, [
+		b('core/paragraph', {
+			content: text, backgroundColor: 'secondary', textColor: 'primary',
+			style: {
+				typography: { ...typography, lineHeight: '1.2' },
+				border: { radius: '999px' },
+				spacing: { padding: { top: '4px', right: '10px', bottom: '4px', left: '10px' }, margin: { top: '0', bottom: '0' } },
+			},
+		}),
+	]);
+}
 
 const button = (text, url, primary, newTab) => b('core/button', {
 	text, url,
@@ -93,7 +106,6 @@ const button = (text, url, primary, newTab) => b('core/button', {
 // Card: badge beside the tag and title; details and buttons use the full width
 // underneath, so the text is not squeezed on a phone.
 function card({ type, name, start, end, when, venue, description, bookingHref, bookingText, registerHref, icsHref }) {
-	const dark = type === 'Webinar';
 	const buttons = [button(bookingText, bookingHref, true)];
 	if (registerHref) buttons.push(button('Register for this event', registerHref, false, true));
 	const body = [
@@ -101,9 +113,9 @@ function card({ type, name, start, end, when, venue, description, bookingHref, b
 			style: { spacing: { blockGap: '16px' } },
 			layout: { type: 'flex', flexWrap: 'nowrap', verticalAlignment: 'center' },
 		}, [
-			badge(start, end, dark),
-			b('core/group', { style: { spacing: { blockGap: '4px' } }, layout: { type: 'default' } }, [
-				tag(type),
+			badge(start, end),
+			b('core/group', { style: { spacing: { blockGap: '6px' } }, layout: { type: 'default' } }, [
+				tag(type, type === 'Webinar'),
 				b('core/heading', { level: 3, content: name, style: { spacing: { margin: { top: '0', bottom: '0' } } } }),
 			]),
 		]),
@@ -116,9 +128,9 @@ function card({ type, name, start, end, when, venue, description, bookingHref, b
 	}
 	return b('core/group', {
 		tagName: 'article',
-		backgroundColor: 'white',
-		borderColor: 'lightgrey',
-		style: { border: { width: '1px', radius: '14px' }, spacing: { padding: { top: '24px', right: '24px', bottom: '24px', left: '24px' } } },
+		// Pale teal tint so cards stand out from the white page; grey tag text
+		// on it is still 4.7:1.
+		style: { color: { background: '#eaf6f5' }, border: { color: '#cde8e5', width: '1px', radius: '14px' }, spacing: { padding: { top: '24px', right: '24px', bottom: '24px', left: '24px' } } },
 		layout: { type: 'default' },
 	}, body);
 }
@@ -138,7 +150,8 @@ function bookingUrl(e, when) {
 	return `${data.bookingBaseUrl}?${q.toString().replace(/\+/g, '%20')}&${UTM}${e.slug}`;
 }
 
-const events = [...data.events].sort((x, y) => x.start.localeCompare(y.start));
+// Events with "hidden": true stay in events.json but are left off the page (and get no .ics).
+const events = data.events.filter((e) => !e.hidden).sort((x, y) => x.start.localeCompare(y.start));
 const webinars = [...data.webinars].sort((x, y) => x.start.localeCompare(y.start));
 
 const listings = [
