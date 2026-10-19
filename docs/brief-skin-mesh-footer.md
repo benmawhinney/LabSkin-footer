@@ -97,6 +97,14 @@ This is the hero interaction. It must feel soft and viscoelastic - skin dents ea
 - Support a small ring buffer of simultaneous break events. Each event is analytic and time-based, keeping the effect lightweight without a full physics simulation.
 - Reduced-motion mode disables idle flow and the outward particle burst. Pokes still deform and recover; break/heal is shown as a static, brief node gap and reconnection.
 
+### Inflammation and repair markers
+
+- A poke or fast flick triggers a local red/coral inflammatory flare and a small burst of neon marker particles at the damage point.
+- Fade the local red flare into a bright white repair highlight first. Once the white phase is established, let the markers drift outward slowly and dissolve; target particle fade-out by about 3.0 seconds and return the lattice from white to its teal base by about 3.5 seconds.
+- Keep the sequence legible and ordered: inflammation red, repair white, then floating/dissolving markers as the lattice heals. Avoid overlapping a dense particle burst with the initial red flare.
+- Keep the signal graphic and restrained: no blood, tissue texture, or biologic claim. The color sequence represents inflammation followed by repair.
+- In reduced-motion mode, suppress particle travel while preserving a brief static flare and accessible recovery.
+
 ### Hover (desktop only)
 
 A gentle, shallow pressure dimple (~25% of a poke) follows the cursor across the sheet, smoothed with lerp. Signals "this is touchable" before anyone clicks.
@@ -163,7 +171,7 @@ Framework-agnostic so it drops into Footer-lab now and WordPress later.
 1. Both variants render and can be switched in Footer-lab.
 2. Idle motion reads as the same "family" as the marketing animation when viewed side by side with the reference stills.
 3. Nodes and connectors read as a flexible square lattice, not a rigid grid or generic wireframe.
-4. A tap visibly deforms nearby nodes and the mesh slowly recovers; a fast flick breaks one node and its adjoining lines, then the dots return and heal it.
+4. A tap visibly deforms nearby nodes and triggers red marker particles; particles fully dissipate before the local repair highlight fades back to the teal lattice. A fast flick also breaks one node and its adjoining lines, then heals it.
 5. Drag turns the sheet with inertia and returns to idle on its own.
 6. Tap, turn, and break gestures do not misfire in 20 test interactions on mouse and touch.
 7. Vertical scrolling on mobile is never trapped by the canvas.
