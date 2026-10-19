@@ -1,0 +1,45 @@
+{
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing.",
+  "bookingBaseUrl": "/contact-us-2/",
+  "contactUrl": "/contact-us-2/",
+  "icsBaseUrl": "/wp-content/uploads/2026/10/",
+  "events": [
+    {
+      "slug": "lab-innovations-2026",
+      "name": "Lab Innovations",
+      "type": "Exhibition",
+      "start": "2026-11-04",
+      "end": "2026-11-05",
+      "venue": "NEC, Birmingham",
+      "description": "The UK’s leading event for laboratory technology, innovation and science."
+    },
+    {
+      "slug": "scs-formulate-2026",
+      "name": "SCS Formulate",
+      "type": "Exhibition",
+      "start": "2026-11-10",
+      "end": "2026-11-10",
+      "venue": "Coventry Building Society Arena, Coventry",
+      "description": "The leading formulation and personal care event."
+    },
+    {
+      "slug": "pave-conference-2026",
+      "name": "PAVE Conference",
+      "type": "Conference",
+      "start": "2026-11-11",
+      "end": "2026-11-11",
+      "venue": "De Montfort University, Leicester",
+      "description": "Bringing together industry, academia and innovation in the life sciences."
+    },
+    {
+      "slug": "skin-at-bath-2026",
+      "name": "Skin@Bath Conference",
+      "type": "Conference",
+      "start": "2026-12-10",
+      "end": "2026-12-11",
+      "venue": "The Guildhall, Bath",
+      "description": "The premier meeting place for skin research, innovation and commercialisation."
+    }
+  ],
+  "webinars": []
+}

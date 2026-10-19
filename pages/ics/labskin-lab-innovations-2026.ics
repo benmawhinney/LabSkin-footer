@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:lab-innovations-2026@labskin.co.uk
+DTSTAMP:20261019T130803Z
+DTSTART;VALUE=DATE:20261104
+DTEND;VALUE=DATE:20261106
+SUMMARY:Lab Innovations - meet Labskin
+LOCATION:NEC\, Birmingham
+DESCRIPTION:The UK’s leading event for laboratory technology\, innovation
+  and science.\n\nBook a meeting with Labskin: https://labskin.co.uk/events/
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR
