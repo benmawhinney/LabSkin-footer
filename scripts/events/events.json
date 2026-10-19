@@ -1,5 +1,5 @@
 {
-  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing.",
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar title, description and length (60 minutes assumed) to be confirmed. Add \"website\" to an event to show an Event website link.",
   "bookingBaseUrl": "/contact-us-2/",
   "contactUrl": "/contact-us-2/",
   "icsBaseUrl": "/wp-content/uploads/2026/10/",
@@ -41,5 +41,16 @@
       "description": "The premier meeting place for skin research, innovation and commercialisation."
     }
   ],
-  "webinars": []
+  "webinars": [
+    {
+      "slug": "labskin-webinar-2026-12-07",
+      "name": "Labskin webinar",
+      "type": "Webinar",
+      "start": "2026-12-07",
+      "startTime": "15:00",
+      "durationMinutes": 60,
+      "description": "Join the Labskin team online. Register and we'll send you the joining link.",
+      "registerUrl": "https://share-eu1.hsforms.com/2z8XaXzmfTU2B-hvhxmKhtA2e8vgf"
+    }
+  ]
 }

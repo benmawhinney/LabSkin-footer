@@ -55,13 +55,13 @@ const tag = (text) => b('core/paragraph', {
 	style: { typography: { textTransform: 'uppercase', fontWeight: '600', letterSpacing: '1px' }, spacing: { margin: { bottom: '0' } } },
 });
 
-function card({ type, where, name, when, venue, description, bookingHref, bookingText, icsHref }) {
+function card({ type, where, name, when, venue, description, bookingHref, bookingText, icsHref, websiteHref }) {
+	const outline = (text, url) => b('core/button', { text, url, className: 'is-style-outline', textColor: 'secondary' });
 	const buttons = [
 		b('core/button', { text: bookingText, url: bookingHref, backgroundColor: 'secondary', textColor: 'white' }),
 	];
-	if (icsHref) {
-		buttons.push(b('core/button', { text: 'Add to calendar', url: icsHref, className: 'is-style-outline', textColor: 'secondary' }));
-	}
+	if (icsHref) buttons.push(outline('Add to calendar', icsHref));
+	if (websiteHref) buttons.push(outline('Event website', websiteHref));
 	return b('core/group', {
 		tagName: 'article',
 		backgroundColor: 'white',
@@ -95,6 +95,27 @@ const eventCards = events.map((e) => card({
 	bookingText: `Book a meeting at ${e.name}`,
 	bookingHref: `${data.bookingBaseUrl}?${UTM}${e.slug}`,
 	icsHref: `${data.icsBaseUrl}labskin-${e.slug}.ics`,
+	websiteHref: e.website,
+}));
+
+// "15:00" -> "3pm", "09:30" -> "9.30am" (UK style).
+function clock(hhmm) {
+	const [h, m] = hhmm.split(':').map(Number);
+	return `${h % 12 || 12}${m ? `.${String(m).padStart(2, '0')}` : ''}${h < 12 ? 'am' : 'pm'}`;
+}
+
+const webinars = [...data.webinars].sort((x, y) => x.start.localeCompare(y.start));
+const webinarCards = webinars.map((w) => card({
+	type: 'Webinar',
+	where: 'Online',
+	name: w.name,
+	when: `${fullDate(w.start, w.start)}, ${clock(w.startTime)} UK time`,
+	venue: 'Online',
+	description: w.description,
+	bookingText: 'Register',
+	bookingHref: `${w.registerUrl}${w.registerUrl.includes('?') ? '&' : '?'}${UTM}${w.slug}`,
+	icsHref: `${data.icsBaseUrl}labskin-${w.slug}.ics`,
+	websiteHref: w.website,
 }));
 
 const emptyState = (what) => b('core/paragraph', {
@@ -109,7 +130,7 @@ const page = [
 	sectionHeading('In person'),
 	eventCards.length ? listGroup(eventCards) : emptyState('events'),
 	sectionHeading('Online'),
-	data.webinars.length ? listGroup([]) : emptyState('webinars'),
+	webinarCards.length ? listGroup(webinarCards) : emptyState('webinars'),
 ];
 
 const pattern = card({
@@ -144,7 +165,9 @@ fs.mkdirSync(path.join(ROOT, 'pages', 'ics'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'pages', 'events.html'), checked(page, 'events.html'));
 fs.writeFileSync(path.join(ROOT, 'pages', 'event-card.html'), checked([pattern], 'event-card.html'));
 
-// ---- .ics (all-day, so no time zone is needed) -----------------------------
+// ---- .ics ------------------------------------------------------------------
+// Exhibitions are all-day (no time zone needed). Webinars are written in UTC,
+// converted from UK time, so every calendar shows the right local time.
 
 const icsDate = (iso) => iso.replaceAll('-', '');
 const nextDay = (iso) => { const d = day(iso); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); };
@@ -163,20 +186,42 @@ function fold(line) {
 }
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
 
-for (const e of events) {
+// UK wall-clock time -> UTC Date, using the time-zone database for GMT/BST.
+function londonToUtc(isoDate, hhmm) {
+	const guess = new Date(`${isoDate}T${hhmm}:00Z`);
+	const offset = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', timeZoneName: 'longOffset' })
+		.formatToParts(guess).find((p) => p.type === 'timeZoneName').value; // "GMT" or "GMT+01:00"
+	const m = offset.match(/([+-])(\d\d):(\d\d)/);
+	const minutes = m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+	return new Date(guess.getTime() - minutes * 60000);
+}
+const icsUtc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+
+function writeIcs(slug, when, summary, location, description) {
 	const lines = [
 		'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Labskin//Events//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
 		'BEGIN:VEVENT',
-		`UID:${e.slug}@labskin.co.uk`,
+		`UID:${slug}@labskin.co.uk`,
 		`DTSTAMP:${stamp}`,
-		`DTSTART;VALUE=DATE:${icsDate(e.start)}`,
-		`DTEND;VALUE=DATE:${icsDate(nextDay(e.end))}`,
-		`SUMMARY:${esc(`${e.name} - meet Labskin`)}`,
-		`LOCATION:${esc(e.venue)}`,
-		`DESCRIPTION:${esc(`${e.description}\n\nBook a meeting with Labskin: https://labskin.co.uk/events/`)}`,
-		'TRANSP:TRANSPARENT',
+		...when,
+		`SUMMARY:${esc(summary)}`,
+		`LOCATION:${esc(location)}`,
+		`DESCRIPTION:${esc(description)}`,
 		'END:VEVENT', 'END:VCALENDAR',
 	];
-	fs.writeFileSync(path.join(ROOT, 'pages', 'ics', `labskin-${e.slug}.ics`), lines.map(fold).join('\r\n') + '\r\n');
+	fs.writeFileSync(path.join(ROOT, 'pages', 'ics', `labskin-${slug}.ics`), lines.map(fold).join('\r\n') + '\r\n');
 }
-console.log(`ics: ${events.length} files`);
+
+for (const e of events) {
+	writeIcs(e.slug,
+		[`DTSTART;VALUE=DATE:${icsDate(e.start)}`, `DTEND;VALUE=DATE:${icsDate(nextDay(e.end))}`, 'TRANSP:TRANSPARENT'],
+		`${e.name} - meet Labskin`, e.venue,
+		`${e.description}\n\nBook a meeting with Labskin: https://labskin.co.uk/events/`);
+}
+for (const w of webinars) {
+	const start = londonToUtc(w.start, w.startTime);
+	const end = new Date(start.getTime() + w.durationMinutes * 60000);
+	writeIcs(w.slug, [`DTSTART:${icsUtc(start)}`, `DTEND:${icsUtc(end)}`],
+		w.name, 'Online', `${w.description}\n\nRegister: ${w.registerUrl}`);
+}
+console.log(`ics: ${events.length + webinars.length} files`);

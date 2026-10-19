@@ -5,13 +5,13 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 UID:lab-innovations-2026@labskin.co.uk
-DTSTAMP:20261019T130803Z
+DTSTAMP:20261019T142404Z
 DTSTART;VALUE=DATE:20261104
 DTEND;VALUE=DATE:20261106
+TRANSP:TRANSPARENT
 SUMMARY:Lab Innovations - meet Labskin
 LOCATION:NEC\, Birmingham
 DESCRIPTION:The UK’s leading event for laboratory technology\, innovation
   and science.\n\nBook a meeting with Labskin: https://labskin.co.uk/events/
-TRANSP:TRANSPARENT
 END:VEVENT
 END:VCALENDAR

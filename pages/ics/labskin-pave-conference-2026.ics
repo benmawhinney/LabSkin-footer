@@ -5,13 +5,13 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 UID:pave-conference-2026@labskin.co.uk
-DTSTAMP:20261019T130803Z
+DTSTAMP:20261019T142404Z
 DTSTART;VALUE=DATE:20261111
 DTEND;VALUE=DATE:20261112
+TRANSP:TRANSPARENT
 SUMMARY:PAVE Conference - meet Labskin
 LOCATION:De Montfort University\, Leicester
 DESCRIPTION:Bringing together industry\, academia and innovation in the lif
  e sciences.\n\nBook a meeting with Labskin: https://labskin.co.uk/events/
-TRANSP:TRANSPARENT
 END:VEVENT
 END:VCALENDAR
