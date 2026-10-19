@@ -18,41 +18,58 @@ Work order: WO-008 (issue #5). Staging signed off by Ben on 2026-10-19. Producti
 | Events page | `/index.php/events/` is free (404) | `/events/` | |
 | Uploads folder | `/wp-content/uploads/2026/10/` exists | Same | Markup points here. If files are uploaded in November, change the month in `events.json` and rebuild first. |
 
+## Hosting (public lookups, 2026-10-19)
+
+- **OVHcloud shared web hosting**, `cluster023.hosting.ovh.net` (Gravelines), Apache, PHP 8.5. DNS on OVHcloud (`dns105`/`ns105.ovh.net`); mail on Microsoft 365 (unaffected by this work).
+- Shared hosting means no root and no server config to break, but also: SSH only exists on some plans, it is a restricted shell, and the account has a **disk quota** and **resource limits**. Filling the quota or tripping the limits can take the site down, so nothing large is written to the webspace.
+- OVHcloud web hosting has automatic backups (panel: Web Hosting → FTP-SSH → Restore a backup); **never tested**. The M&C staging copy is the fallback, but it has drifted, so it is not a ready blue/green target.
+
+## Ground rules
+
+1. **Never take the site down.** When in doubt, don't.
+2. **Publishing is done through the WordPress UI by Ben.** No scripted writes to production.
+3. Over SSH, Claude only reads, and only with light commands.
+4. Nothing is written to the webspace: backups stream straight to Ben's machine.
+5. No change to `.htaccess`, `wp-config.php`, `.ovhconfig` (PHP version), plugins, themes, the OVHcloud panel settings or DNS.
+
 ## Access and credentials
 
-- **SSH key only.** Ben adds a public key in the OVHcloud panel; the private key stays in `C:\Users\User\.ssh\`. Never in the repo, chat, a work order or an EOD report.
-- Ben gives Claude only: host, port, username and the key's file name. Add a host entry to `~/.ssh/config`.
-- **Verify the host fingerprint** against the one shown in the OVHcloud panel on first connection, then keep strict host-key checking on.
-- If the plan only allows password SFTP, stop: Ben does the backup download and the editor steps himself (Option A below).
+- Credentials never go in the repo, chat, a work order, an EOD report, `infrastructure.json` or anywhere in `C:\workspaces\`.
+- The OVHcloud SSH/FTP password lives in Ben's password manager. Ben types it himself, once, in his own terminal; Claude never sees it.
+- For Claude: an **SSH key** in `C:\Users\User\.ssh\labskin-ovh` (passphrase-protected, loaded into the Windows ssh-agent), and a `labskin-prod` entry in `C:\Users\User\.ssh\config` with host, port, user and key file only. Strict host-key checking stays on.
+- If key login is not available on this plan: Claude prepares each read-only command, Ben runs it and pastes the output (never credentials).
 
-## Phase 1: Read-only checks over SSH (no changes)
+## Phase 1: Light-touch investigation (read-only)
 
-Ben's go-ahead needed to connect. Commands only read.
+Goal: find out what we can and can't do safely. Each step is a single read; stop at the first surprise.
 
-1. `wp core version`, active theme and child theme versions.
-2. Palette slugs exist: `primary`, `secondary`, `tertiary`.
-3. No page, draft or trashed post already has the slug `events`.
-4. Footer "About" menu exists and which location it is in.
-5. Uploads folder is writable; free disk space for the backup.
-6. Whether OVHcloud also keeps automatic backups, and how far back.
+| # | Check | Command (read-only) | Why |
+|---|---|---|---|
+| 1 | SSH works with the key, no password | `ssh -o PasswordAuthentication=no labskin-prod 'echo ok'` | Proves key access |
+| 2 | Where we are | `pwd; ls -la` | Find the webroot (often `www/`) |
+| 3 | Disk quota and usage | `quota -s` or `du -sh ~` (only if `quota` is absent) | Is there room; is the site near its limit |
+| 4 | PHP and WP-CLI present | `php -v; wp --info` | Whether read-only WP queries are possible |
+| 5 | WordPress basics | `wp core version; wp theme list; wp plugin list --status=active` | Matches the public checks |
+| 6 | Slug is free | `wp post list --post_type=any --post_status=any --name=events --fields=ID,post_type,post_status` | No clash |
+| 7 | Footer menu | `wp menu list` | Where Events will go |
+| 8 | Database size | `wp db size --tables=false` | Size of the backup |
+| 9 | Uploads size | `du -sh www/wp-content/uploads` | Whether a full files copy is practical |
+
+Not run, even read-only: anything that loops over every post or file on a busy site, `wp db check`/`optimize`, cron runs, cache flushes.
 
 ## Phase 2: Backup (must pass before Phase 3)
 
-1. Database export (`wp db export`), compressed.
-2. Archive of `wp-content/` (themes, plugins, uploads), or at minimum `wp-content/uploads/2026/` plus the theme folders if space is tight.
-3. Download both to `C:\workspaces\Labskin-backups\2026-10-<day>\` (outside the repo, git-ignored, never pushed).
-4. Verify: `gzip -t` passes, the SQL file contains `wp_posts` and `wp_options`, record sizes and SHA-256 checksums in the EOD report.
-5. Delete the server-side copies once downloaded, so no backup is left in a web-readable place.
+1. **Database:** streamed to Ben's machine, never written on the server: `ssh labskin-prod 'wp db export - | gzip' > backup.sql.gz` (or `mysqldump` if WP-CLI is unavailable). Run off-peak.
+2. **Files:** at minimum `wp-content/themes/` and `wp-content/uploads/2026/`, pulled with `scp -r`/`rsync` (read-only on the server). A full uploads copy only if Phase 1 shows it is a sensible size.
+3. Store in `C:\workspaces\Labskin-backups\2026-10-<day>\` (outside the repo, never pushed).
+4. Verify: `gzip -t` passes, the SQL contains `wp_posts` and `wp_options`, record sizes and SHA-256 checksums in the EOD report.
+5. Also note the date of the latest OVHcloud automatic backup in the panel.
 
-## Phase 3: The change (about 15 minutes)
+## Phase 3: The change (about 15 minutes), Ben in WordPress admin
 
-Two ways to do the same steps. Option A matches the Tier 1 rule as written ("through the WordPress editor").
+Ben follows `pages/README-events.md` in the browser; Claude checks each step from the outside (page loads, links, files).
 
-**Option A (recommended): Ben in WordPress admin, following `pages/README-events.md`.** Claude stays on the call to check each step.
-
-**Option B: Claude over SSH with WP-CLI**, exactly as on staging. Faster, but it is a scripted write to production, so Ben must say "go" at that moment, and Ben still opens the page in the editor for step 4.
-
-Steps:
+Steps (Ben, in WordPress admin):
 1. Upload 4 `.ics` files and 3 logo `.webp` files to Media. Check they land in `/wp-content/uploads/2026/10/`.
 2. Create the **Event card** pattern, set to **Not synced**, from `pages/event-card.html`.
 3. Create page **Meet Labskin**, slug `events`, as a **draft**; paste `pages/events.html` into the Code editor.
@@ -86,10 +103,14 @@ Lab Innovations starts **Wednesday 4 November 2026**, so go live by the end of O
 - Open a PR from `feature/events-page` so the deliverable is on the main line.
 - Remove each event's card the day after it ends (or move the webinar to "On demand" with its recording).
 
-## Open questions for Ben
+## Decisions (Ben, 2026-10-19)
 
-1. Which OVHcloud product hosts the site, and does it offer SSH with key login?
-2. Does OVHcloud keep automatic backups for it, and has a restore ever been tested?
-3. Who else has WordPress admin access, so they know a change is happening?
-4. Should Events also go in the main menu?
-5. Option A or B for Phase 3?
+- Publishing through the WordPress UI; avoiding downtime above everything else.
+- Footer link only, not the main menu.
+- No one else is editing the site, so no change notice is needed.
+- Claude does a light-touch, read-only investigation first (Phase 1) to establish what is safe.
+
+## Later (not part of this change)
+
+- Test an OVHcloud backup restore (into a throwaway location, not over production).
+- Bring the M&C staging copy back in line with production so blue/green with a DNS switch is a real option.
