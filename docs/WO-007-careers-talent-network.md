@@ -46,8 +46,23 @@ Keep the news opt-in separate from the consent, and unticked. Talent-network dat
 ## Page
 
 - Title: **Careers at Labskin**. Slug: `careers` (clean URL once WO-004 lands).
-- Use the theme's standard page template and existing block styles. No new design system.
-- Add **Careers** to the footer's company links. Production footer and menu changes come later, with sign-off.
+- Add **Careers** to the footer's company links. On production this is done in the UI (Appearance), with sign-off.
+
+### Light-touch build: existing template, core blocks only
+
+Labskin production is not fully under our control yet, so this page must be something Ben can **recreate on labskin.co.uk through the WordPress editor alone**.
+
+- Use the theme's **existing default page template**. No theme files, no PHP, no new plugin, no custom CSS.
+- Build from **core blocks** (Group, Columns, Heading, Paragraph, List, Buttons). Any polish comes from block settings: spacing, background colour, border radius.
+- Embed the HubSpot form with a **Custom HTML block** containing HubSpot's embed code. On production, the connected HubSpot plugin's own form block can be used instead.
+- **Deliverables in this repo:** `pages/careers.html` (the page's block markup from the editor's Code view) and `pages/README-careers.md` with the steps to put it live:
+  1. On labskin.co.uk, create the page as a **draft**, slug `careers`.
+  2. Paste the markup in the Code editor, switch back to the visual editor, and check that no block reports invalid content.
+  3. Preview on desktop and mobile.
+  4. Publish.
+  5. Add the footer link in Appearance.
+  - **Rollback:** switch the page back to Draft and remove the link.
+- Build it on staging the same way, by pasting the markup into the editor, so staging proves the production steps.
 
 ### Page copy
 
