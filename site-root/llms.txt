@@ -1,0 +1,33 @@
+# Labskin
+
+> Labskin Limited is a UK contract research company in Wetherby, West Yorkshire. It makes Labskin, a lab-grown, full-thickness 3D human skin model that can be colonised with the skin's own microbiome, and uses it to test cosmetic, personal care, pharmaceutical, wound care and household products without animal testing.
+
+Labskin's skin model is built from human keratinocytes and fibroblasts, with a dermis, an epidermis and a thick, dry stratum corneum. It produces its own extracellular matrix and proteins such as collagen, fibrinogen and anti-microbial peptides, which lets it host bacteria, yeasts and fungi on its surface for up to 14 days. The model has been developed over more than 15 years and is described in over 30 scientific publications.
+
+Labskin works with skincare and cosmetics brands, ingredient suppliers, pharmaceutical and drug delivery companies, wound care developers and researchers. Studies range from quick, focused tests to bespoke research programmes; results support product safety, claim substantiation and product information files (PIFs).
+
+## Services
+
+- [Contract research](https://labskin.co.uk/index.php/contract-research/): Testing on the Labskin platform: cosmetic claims, skin irritation, anti-ageing, microflora protection, antimicrobial efficacy (for example against Cutibacterium acnes, Staphylococcus aureus and Trichophyton rubrum), anti-fungal and anti-dandruff, skin barrier, pre- and probiotics, immune response, topical drug delivery, infected wound healing, and tampon safety including TSST-1 toxin.
+- [Microbiology services](https://labskin.co.uk/index.php/about-us/): Antimicrobial profiling of ingredients and formulations, MICs, residual antimicrobial activity, quantitative skin microbiology, skin microbiology consultancy, and cytotoxicity testing following OECD TG439.
+- [Histology services](https://labskin.co.uk/index.php/histology-services/): FFPE tissue processing and sectioning, H&E staining, immunohistochemistry and immunofluorescence (22 optimised skin-target protocols), and custom assay development.
+- [Microbiome Friendly+ Seal of Approval](https://labskin.co.uk/index.php/microbiome-friendly-seal-of-approval/): Certification that a tested product leaves the level and composition of the skin microbiome intact; approved brands can use the seal on packaging and online.
+
+## Products
+
+- [Labskin-S plates](https://labskin.co.uk/index.php/labskin-s/): Full-thickness skin models supplied for clients' own testing: 6-well plates (4.5 square centimetres per construct) or 12-well plates (1.1 square centimetres), with culture media and instructions. Viable for up to 2 weeks after receipt; shipped at ambient temperature, media at 2-8 degrees C.
+- [Innovation](https://labskin.co.uk/index.php/innovation/): Models in development, including Labskin-M, a skin equivalent with melanocytes in the dermis and epidermis, developed with the Centre for Skin Sciences at the University of Bradford.
+
+## Company
+
+- [About Labskin](https://labskin.co.uk/index.php/about-us/): What makes the model different and how Labskin works with clients.
+- [Meet the team](https://labskin.co.uk/index.php/meet-the-team/): Scientists and staff, led by Scientific Director Dr Nicola Kingswell.
+- [Client feedback](https://labskin.co.uk/index.php/client-feedback/): Client case studies and testimonials.
+- [Resources and news](https://labskin.co.uk/index.php/resources/): Newsletter, news, publications and case studies.
+
+## Contact
+
+- [Contact Labskin](https://labskin.co.uk/index.php/contact-us/): Enquiry form; the team aims to reply within 48 hours.
+- Email: info@labskin.co.uk
+- Phone: +44 (0)7387 001 146
+- Address: Labskin Limited, Unit 20 Ash Way, Avenue C West, Thorp Arch Estate, Wetherby, LS23 7FA, United Kingdom
