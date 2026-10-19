@@ -107,6 +107,18 @@ gh issue list --label work-order --state open
 
 Read the linked work order and execute it on the branch it names. Comment on the issue with progress and the staging link. Close the issue when Ben signs off.
 
+## Production Change Rules
+
+Until Labskin production (labskin.co.uk, OVHcloud) has proper access, backups and release procedures, changes there stay light-touch:
+
+| Tier | What | Allowed on production now? |
+|---|---|---|
+| 1 | Content through the WordPress editor: new pages built from core blocks on the existing template, menus, widgets, media, page edits | **Yes**, with Ben's sign-off. Create as draft, preview, publish. Rollback: back to draft |
+| 2 | Plugin settings through the UI (AIOSEO, Redirection, HubSpot) | Yes, one change at a time, noted in the EOD report |
+| 3 | Theme files, PHP, custom CSS or JS, new plugins, database scripts, `.htaccess` | **No.** Staging only, until procedures are agreed |
+
+Every work order that will reach production says which tier it needs. Tier 1 work delivers **paste-in block markup** in `pages/` plus the steps to put it live, and is built on staging by pasting that markup into the editor, so staging proves the production steps.
+
 ## Staging Deployment Rules
 
 - Use one verified Lightsail snapshot at the beginning of a deployment work session; use unique per-file backups for subsequent iterations in that session.
