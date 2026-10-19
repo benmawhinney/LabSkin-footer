@@ -1,9 +1,21 @@
 {
-  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar description and length (60 minutes assumed) to be confirmed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it.",
-  "bookingBaseUrl": "/contact-us-2/",
-  "contactUrl": "/contact-us-2/",
-  "icsBaseUrl": "/wp-content/uploads/2026/10/",
-  "mediaBaseUrl": "/wp-content/uploads/2026/10/",
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar length 60 minutes assumed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it. Site-specific links are under \"sites\": production uses /index.php/ URLs, staging uses clean URLs. Set the uploads month to the month the files are uploaded.",
+  "sites": {
+    "production": {
+      "bookingBaseUrl": "/index.php/contact-us/",
+      "contactUrl": "/index.php/contact-us/",
+      "icsBaseUrl": "/wp-content/uploads/2026/10/",
+      "mediaBaseUrl": "/wp-content/uploads/2026/10/",
+      "eventsPageUrl": "https://labskin.co.uk/index.php/events/"
+    },
+    "staging": {
+      "bookingBaseUrl": "/contact-us-2/",
+      "contactUrl": "/contact-us-2/",
+      "icsBaseUrl": "/wp-content/uploads/2026/10/",
+      "mediaBaseUrl": "/wp-content/uploads/2026/10/",
+      "eventsPageUrl": "https://mischiefandcraft.com/events/"
+    }
+  },
   "events": [
     {
       "slug": "lab-innovations-2026",
@@ -55,8 +67,14 @@
       "start": "2026-12-07",
       "startTime": "15:00",
       "durationMinutes": 60,
-      "description": "Join the Labskin team online. Register and we'll send you the joining link.",
-      "registerUrl": "https://share-eu1.hsforms.com/2z8XaXzmfTU2B-hvhxmKhtA2e8vgf"
+      "description": "Our upcoming webinar will explore:",
+      "registerUrl": "https://share-eu1.hsforms.com/2z8XaXzmfTU2B-hvhxmKhtA2e8vgf",
+      "topics": [
+        "The development of the new Labskin-Mel 3D melanoma model",
+        "The science behind the model and its characterisation",
+        "How Labskin-Mel can be used for preclinical drug testing",
+        "The potential of 3D human skin models to support more relevant melanoma research"
+      ]
     }
   ]
 }

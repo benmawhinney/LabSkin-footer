@@ -5,14 +5,14 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 UID:skin-at-bath-2026@labskin.co.uk
-DTSTAMP:20261019T151818Z
+DTSTAMP:20261019T160030Z
 DTSTART;VALUE=DATE:20261210
 DTEND;VALUE=DATE:20261212
 TRANSP:TRANSPARENT
 SUMMARY:Skin@Bath Conference - meet Labskin
 LOCATION:The Guildhall\, Bath
 DESCRIPTION:The premier meeting place for skin research\, innovation and co
- mmercialisation.\n\nBook a meeting with Labskin: https://labskin.co.uk/eve
- nts/
+ mmercialisation.\n\nBook a meeting with Labskin: https://labskin.co.uk/ind
+ ex.php/events/
 END:VEVENT
 END:VCALENDAR

@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:melanoma-research-webinar-2026@labskin.co.uk
+DTSTAMP:20261019T160149Z
+DTSTART:20261207T150000Z
+DTEND:20261207T160000Z
+SUMMARY:A new approach to melanoma research
+LOCATION:Online
+DESCRIPTION:Our upcoming webinar will explore:\n- The development of the ne
+ w Labskin-Mel 3D melanoma model\n- The science behind the model and its ch
+ aracterisation\n- How Labskin-Mel can be used for preclinical drug testing
+ \n- The potential of 3D human skin models to support more relevant melanom
+ a research\n\nRegister: https://share-eu1.hsforms.com/2z8XaXzmfTU2B-hvhxmK
+ htA2e8vgf
+END:VEVENT
+END:VCALENDAR

@@ -4,7 +4,10 @@
 // Markup is created with WordPress's own block serializer, then re-parsed and
 // checked, so the editor will not report "unexpected or invalid content".
 //
-//   cd scripts/events && npm install && node build-events-page.cjs
+//   cd scripts/events && npm install && npm run build
+//
+// Builds one site per run: `node build-events-page.cjs production` writes pages/
+// (the paste-in deliverable), `... staging` writes pages/staging/.
 
 const fs = require('fs');
 const path = require('path');
@@ -26,7 +29,11 @@ const { createBlock: b, serialize, parse } = require('@wordpress/blocks');
 registerCoreBlocks();
 
 const ROOT = path.resolve(__dirname, '..', '..');
+const SITE = process.argv[2] || 'production';
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'events.json'), 'utf8'));
+if (!data.sites[SITE]) throw new Error(`Unknown site "${SITE}"; expected one of: ${Object.keys(data.sites).join(', ')}`);
+Object.assign(data, data.sites[SITE]);
+const OUT = SITE === 'production' ? path.join(ROOT, 'pages') : path.join(ROOT, 'pages', SITE);
 const UTM = 'utm_source=website&utm_medium=events&utm_campaign=';
 const LOGOS = JSON.parse(fs.readFileSync(path.join(ROOT, 'pages', 'logos', 'logos.json'), 'utf8'));
 
@@ -101,11 +108,11 @@ const button = (text, url, primary, newTab) => b('core/button', {
 	...(newTab ? { linkTarget: '_blank', rel: 'noopener' } : {}),
 	...(primary
 		? { backgroundColor: 'secondary', textColor: 'primary', style: { border: { radius: '8px' }, typography: { fontWeight: '600' } } }
-		: { className: 'is-style-outline', textColor: 'primary', style: { border: { radius: '8px' } } }),
+		// No text colour on outline buttons: the theme's hover fills them with #101010
+		// and turns the text white, which an explicit colour would block (black on black).
+		: { className: 'is-style-outline', style: { border: { radius: '8px' } } }),
 });
 
-// Card: badge beside the tag and title; details and buttons use the full width
-// underneath, so the text is not squeezed on a phone.
 // Organiser logo, top right of the card (wraps under the title on a phone).
 // Decorative: the event name is the heading beside it, so alt is empty.
 // Fixed width and height so the page doesn't shift while it loads.
@@ -120,7 +127,9 @@ function logoBlock(logo) {
 	});
 }
 
-function card({ type, name, start, end, when, venue, description, bookingHref, bookingText, registerHref, icsHref, logo }) {
+// Card: badge beside the tag and title; details and buttons use the full width
+// underneath, so the text is not squeezed on a phone.
+function card({ type, name, start, end, when, venue, description, topics, bookingHref, bookingText, registerHref, icsHref, logo }) {
 	// Registration (events and webinars) always uses the outline button and opens in a new tab.
 	const buttons = bookingHref ? [button(bookingText, bookingHref, true)] : [];
 	if (registerHref) buttons.push(button(type === 'Webinar' ? 'Register for this webinar' : 'Register for this event', registerHref, false, true));
@@ -144,6 +153,7 @@ function card({ type, name, start, end, when, venue, description, bookingHref, b
 			: title,
 		b('core/paragraph', { content: `<strong>${when}</strong><br>${venue}`, style: { spacing: { margin: { top: '18px' } } } }),
 		b('core/paragraph', { content: description }),
+		...(topics && topics.length ? [b('core/list', {}, topics.map((t) => b('core/list-item', { content: t })))] : []),
 		b('core/buttons', { style: { spacing: { margin: { top: '18px' }, blockGap: '10px' } } }, buttons),
 	];
 	if (icsHref) {
@@ -188,7 +198,7 @@ const listings = [
 	}),
 	...webinars.map((w) => ({
 		start: w.start, type: 'Webinar', name: w.name, end: w.start,
-		when: `${fullDate(w.start, w.start)}, ${clock(w.startTime)} UK time`, venue: 'Online', description: w.description,
+		when: `${fullDate(w.start, w.start)}, ${clock(w.startTime)} UK time`, venue: 'Online', description: w.description, topics: w.topics,
 		registerHref: `${w.registerUrl}${w.registerUrl.includes('?') ? '&' : '?'}${UTM}${w.slug}`,
 		icsHref: `${data.icsBaseUrl}labskin-${w.slug}.ics`,
 	})),
@@ -235,9 +245,10 @@ function checked(blocks, label) {
 	return html + '\n';
 }
 
-fs.mkdirSync(path.join(ROOT, 'pages', 'ics'), { recursive: true });
-fs.writeFileSync(path.join(ROOT, 'pages', 'events.html'), checked(page, 'events.html'));
-fs.writeFileSync(path.join(ROOT, 'pages', 'event-card.html'), checked([pattern], 'event-card.html'));
+console.log(`site: ${SITE}`);
+fs.mkdirSync(path.join(OUT, 'ics'), { recursive: true });
+fs.writeFileSync(path.join(OUT, 'events.html'), checked(page, 'events.html'));
+fs.writeFileSync(path.join(OUT, 'event-card.html'), checked([pattern], 'event-card.html'));
 
 // ---- .ics ------------------------------------------------------------------
 // Exhibitions are all-day (no time zone needed). Webinars are written in UTC,
@@ -283,19 +294,19 @@ function writeIcs(slug, when, summary, location, description) {
 		`DESCRIPTION:${esc(description)}`,
 		'END:VEVENT', 'END:VCALENDAR',
 	];
-	fs.writeFileSync(path.join(ROOT, 'pages', 'ics', `labskin-${slug}.ics`), lines.map(fold).join('\r\n') + '\r\n');
+	fs.writeFileSync(path.join(OUT, 'ics', `labskin-${slug}.ics`), lines.map(fold).join('\r\n') + '\r\n');
 }
 
 for (const e of events) {
 	writeIcs(e.slug,
 		[`DTSTART;VALUE=DATE:${icsDate(e.start)}`, `DTEND;VALUE=DATE:${icsDate(nextDay(e.end))}`, 'TRANSP:TRANSPARENT'],
 		`${e.name} - meet Labskin`, e.venue,
-		`${e.description}\n\nBook a meeting with Labskin: https://labskin.co.uk/events/`);
+		`${e.description}\n\nBook a meeting with Labskin: ${data.eventsPageUrl}`);
 }
 for (const w of webinars) {
 	const start = londonToUtc(w.start, w.startTime);
 	const end = new Date(start.getTime() + w.durationMinutes * 60000);
 	writeIcs(w.slug, [`DTSTART:${icsUtc(start)}`, `DTEND:${icsUtc(end)}`],
-		w.name, 'Online', `${w.description}\n\nRegister: ${w.registerUrl}`);
+		w.name, 'Online', `${w.description}${(w.topics || []).map((t) => `\n- ${t}`).join('')}\n\nRegister: ${w.registerUrl}`);
 }
 console.log(`ics: ${events.length + webinars.length} files`);

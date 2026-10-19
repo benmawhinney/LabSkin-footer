@@ -1,9 +1,10 @@
 {
   "name": "labskin-events-page",
   "private": true,
-  "description": "WO-008 generator for pages/events.html, pages/event-card.html and pages/ics/*.ics",
+  "description": "WO-008 generator: pages/ (production) and pages/staging/ block markup, .ics files and logos",
   "scripts": {
-    "build": "node build-events-page.cjs"
+    "build": "node build-events-page.cjs production && node build-events-page.cjs staging",
+    "logos": "node prepare-logos.cjs"
   },
   "dependencies": {
     "@wordpress/block-library": "11.2.0",

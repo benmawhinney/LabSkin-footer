@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:skin-at-bath-2026@labskin.co.uk
+DTSTAMP:20261019T160149Z
+DTSTART;VALUE=DATE:20261210
+DTEND;VALUE=DATE:20261212
+TRANSP:TRANSPARENT
+SUMMARY:Skin@Bath Conference - meet Labskin
+LOCATION:The Guildhall\, Bath
+DESCRIPTION:The premier meeting place for skin research\, innovation and co
+ mmercialisation.\n\nBook a meeting with Labskin: https://mischiefandcraft.
+ com/events/
+END:VEVENT
+END:VCALENDAR
