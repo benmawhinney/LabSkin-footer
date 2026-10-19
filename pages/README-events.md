@@ -16,7 +16,8 @@ These files are generated from `scripts/events/events.json` by `scripts/events/b
 
 The markup uses root-relative links, so it works on any host, but three things depend on the site it is pasted into:
 
-1. **Booking button.** It currently points to the contact page, `/contact-us-2/?utm_source=website&utm_medium=events&utm_campaign=<event-slug>`. When the HubSpot meetings link is ready, set `bookingBaseUrl` in `events.json` to it and rebuild. Check that `/contact-us-2/` is the right contact page on labskin.co.uk.
+1. **Booking button.** It points to the contact page, which embeds the HubSpot contact form. The link pre-fills that form: `message` fills the Message box ("I'd like to book a meeting with Labskin at <event> (<date>).") and `marketing_lead_source` selects **Exhibition** or **Conference** in the lead-source list, followed by `utm_source=website&utm_medium=events&utm_campaign=<event-slug>`. This works because HubSpot fills any field whose internal name matches a query parameter; no setting or code is involved. Check that `/contact-us-2/` is the contact page with this form on labskin.co.uk.
+   **Register for this event** (only where `registrationUrl` is set in `events.json`) goes to the organiser's registration page and opens in a new tab.
 2. **Add to calendar.** It points to `/wp-content/uploads/2026/10/labskin-<event-slug>.ics`. WordPress files uploads by the month they are uploaded in. If you upload in a different month, set `icsBaseUrl` in `events.json` to match and rebuild, or fix each button's link in the editor.
 3. **Year.** The dates assume 2026 (the supplied graphic did not show the year).
 
