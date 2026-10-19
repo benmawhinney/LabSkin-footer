@@ -28,6 +28,7 @@ registerCoreBlocks();
 const ROOT = path.resolve(__dirname, '..', '..');
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'events.json'), 'utf8'));
 const UTM = 'utm_source=website&utm_medium=events&utm_campaign=';
+const LOGOS = JSON.parse(fs.readFileSync(path.join(ROOT, 'pages', 'logos', 'logos.json'), 'utf8'));
 
 // ---- Dates -----------------------------------------------------------------
 
@@ -105,21 +106,42 @@ const button = (text, url, primary, newTab) => b('core/button', {
 
 // Card: badge beside the tag and title; details and buttons use the full width
 // underneath, so the text is not squeezed on a phone.
-function card({ type, name, start, end, when, venue, description, bookingHref, bookingText, registerHref, icsHref }) {
+// Organiser logo, top right of the card (wraps under the title on a phone).
+// Decorative: the event name is the heading beside it, so alt is empty.
+// Fixed width and height so the page doesn't shift while it loads.
+function logoBlock(logo) {
+	return b('core/image', {
+		url: `${data.mediaBaseUrl}${logo.file}`,
+		alt: '',
+		width: `${logo.width}px`,
+		height: `${logo.height}px`,
+		scale: 'contain',
+		style: { spacing: { margin: { top: '0', bottom: '0' } } },
+	});
+}
+
+function card({ type, name, start, end, when, venue, description, bookingHref, bookingText, registerHref, icsHref, logo }) {
 	// Registration (events and webinars) always uses the outline button and opens in a new tab.
 	const buttons = bookingHref ? [button(bookingText, bookingHref, true)] : [];
 	if (registerHref) buttons.push(button(type === 'Webinar' ? 'Register for this webinar' : 'Register for this event', registerHref, false, true));
-	const body = [
-		b('core/group', {
-			style: { spacing: { blockGap: '16px' } },
-			layout: { type: 'flex', flexWrap: 'nowrap', verticalAlignment: 'center' },
-		}, [
-			badge(start, end),
-			b('core/group', { style: { spacing: { blockGap: '6px' } }, layout: { type: 'default' } }, [
-				tag(type, type === 'Webinar'),
-				b('core/heading', { level: 3, content: name, style: { spacing: { margin: { top: '0', bottom: '0' } } } }),
-			]),
+	const title = b('core/group', {
+		// Fill: take the row's spare width so the title doesn't wrap beside the logo.
+		style: { spacing: { blockGap: '16px' }, layout: { selfStretch: 'fill', flexSize: null } },
+		layout: { type: 'flex', flexWrap: 'nowrap', verticalAlignment: 'center' },
+	}, [
+		badge(start, end),
+		b('core/group', { style: { spacing: { blockGap: '6px' } }, layout: { type: 'default' } }, [
+			tag(type, type === 'Webinar'),
+			b('core/heading', { level: 3, content: name, style: { spacing: { margin: { top: '0', bottom: '0' } } } }),
 		]),
+	]);
+	const body = [
+		logo
+			? b('core/group', {
+				style: { spacing: { blockGap: '16px' } },
+				layout: { type: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', verticalAlignment: 'center' },
+			}, [title, logoBlock(logo)])
+			: title,
 		b('core/paragraph', { content: `<strong>${when}</strong><br>${venue}`, style: { spacing: { margin: { top: '18px' } } } }),
 		b('core/paragraph', { content: description }),
 		b('core/buttons', { style: { spacing: { margin: { top: '18px' }, blockGap: '10px' } } }, buttons),
@@ -161,7 +183,7 @@ const listings = [
 		return {
 			start: e.start, type: e.type, name: e.name, end: e.end, when, venue: e.venue, description: e.description,
 			bookingText: `Book a meeting at ${e.name}`, bookingHref: bookingUrl(e, when),
-			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}labskin-${e.slug}.ics`,
+			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}labskin-${e.slug}.ics`, logo: LOGOS[e.slug],
 		};
 	}),
 	...webinars.map((w) => ({

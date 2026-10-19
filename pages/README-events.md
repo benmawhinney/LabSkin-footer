@@ -9,6 +9,7 @@ Work order: `docs/WO-008-events-and-webinars.md`. Production tier: **1** (editor
 | `events.html` | The whole page, as block markup. Paste it into the Code editor. |
 | `event-card.html` | One blank event card. Save it as the **Event card** pattern. |
 | `ics/*.ics` | One "Add to calendar" file per event. Upload through Media. |
+| `logos/*.webp` | Organiser logos, prepared for the light cards by `scripts/events/prepare-logos.cjs` from the originals in `scripts/events/logo-sources/`. Upload through Media. About 28 KB in total. |
 
 These files are generated from `scripts/events/events.json` by `scripts/events/build-events-page.cjs`. To change an event, edit the JSON and rebuild (`cd scripts/events && npm install && npm run build`); don't hand-edit the HTML. The generator checks that every block is valid before writing.
 
@@ -23,7 +24,7 @@ The markup uses root-relative links, so it works on any host, but three things d
 
 ## Steps (labskin.co.uk)
 
-1. **Media → Add New**: upload the four files in `ics/`. Open one and copy its URL; check that the folder matches `icsBaseUrl`.
+1. **Media → Add New**: upload the files in `ics/` and `logos/`. Open one and copy its URL; check that the folder matches `icsBaseUrl` and `mediaBaseUrl`.
 2. **Pages → Add New**: title **Meet Labskin**. In the page settings, set the slug to `events`. Keep it a **draft**.
 3. Open the **Code editor** (⋮ menu → Code editor, or Ctrl+Shift+Alt+M). Paste the whole of `events.html`. Switch back to the **Visual editor**.
 4. Check that **no block shows "This block contains unexpected or invalid content"**.

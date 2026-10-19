@@ -3,6 +3,7 @@
   "bookingBaseUrl": "/contact-us-2/",
   "contactUrl": "/contact-us-2/",
   "icsBaseUrl": "/wp-content/uploads/2026/10/",
+  "mediaBaseUrl": "/wp-content/uploads/2026/10/",
   "events": [
     {
       "slug": "lab-innovations-2026",
