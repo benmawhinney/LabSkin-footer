@@ -4,11 +4,11 @@ PRODID:-//Labskin//Events//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
-UID:labskin-webinar-2026-12-07@labskin.co.uk
-DTSTAMP:20261019T145946Z
+UID:melanoma-research-webinar-2026@labskin.co.uk
+DTSTAMP:20261019T150500Z
 DTSTART:20261207T150000Z
 DTEND:20261207T160000Z
-SUMMARY:Labskin webinar
+SUMMARY:A new approach to melanoma research
 LOCATION:Online
 DESCRIPTION:Join the Labskin team online. Register and we'll send you the j
  oining link.\n\nRegister: https://share-eu1.hsforms.com/2z8XaXzmfTU2B-hvhx

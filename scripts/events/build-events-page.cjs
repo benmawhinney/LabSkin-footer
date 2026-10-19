@@ -106,8 +106,9 @@ const button = (text, url, primary, newTab) => b('core/button', {
 // Card: badge beside the tag and title; details and buttons use the full width
 // underneath, so the text is not squeezed on a phone.
 function card({ type, name, start, end, when, venue, description, bookingHref, bookingText, registerHref, icsHref }) {
-	const buttons = [button(bookingText, bookingHref, true)];
-	if (registerHref) buttons.push(button('Register for this event', registerHref, false, true));
+	// Registration (events and webinars) always uses the outline button and opens in a new tab.
+	const buttons = bookingHref ? [button(bookingText, bookingHref, true)] : [];
+	if (registerHref) buttons.push(button(type === 'Webinar' ? 'Register for this webinar' : 'Register for this event', registerHref, false, true));
 	const body = [
 		b('core/group', {
 			style: { spacing: { blockGap: '16px' } },
@@ -166,7 +167,7 @@ const listings = [
 	...webinars.map((w) => ({
 		start: w.start, type: 'Webinar', name: w.name, end: w.start,
 		when: `${fullDate(w.start, w.start)}, ${clock(w.startTime)} UK time`, venue: 'Online', description: w.description,
-		bookingText: 'Register', bookingHref: `${w.registerUrl}${w.registerUrl.includes('?') ? '&' : '?'}${UTM}${w.slug}`,
+		registerHref: `${w.registerUrl}${w.registerUrl.includes('?') ? '&' : '?'}${UTM}${w.slug}`,
 		icsHref: `${data.icsBaseUrl}labskin-${w.slug}.ics`,
 	})),
 ].sort((x, y) => x.start.localeCompare(y.start));

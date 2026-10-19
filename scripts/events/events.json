@@ -1,5 +1,5 @@
 {
-  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar title, description and length (60 minutes assumed) to be confirmed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it.",
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar description and length (60 minutes assumed) to be confirmed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it.",
   "bookingBaseUrl": "/contact-us-2/",
   "contactUrl": "/contact-us-2/",
   "icsBaseUrl": "/wp-content/uploads/2026/10/",
@@ -48,8 +48,8 @@
   ],
   "webinars": [
     {
-      "slug": "labskin-webinar-2026-12-07",
-      "name": "Labskin webinar",
+      "slug": "melanoma-research-webinar-2026",
+      "name": "A new approach to melanoma research",
       "type": "Webinar",
       "start": "2026-12-07",
       "startTime": "15:00",
