@@ -13,32 +13,33 @@ One place on the website that lists every chance to meet Labskin: exhibitions an
 
 - **One page, `/events/`, titled "Meet Labskin".** People don't care how they meet us, only when. One URL is also easier to put in email signatures, LinkedIn posts and the footer.
 - **A chronological list, not a month grid.** With four or five events a year, a calendar grid is mostly empty squares and reads as "not much happening". A dated list reads as busy and is far better on mobile.
-- **Each entry carries a type tag** (Exhibition, Conference talk, Webinar), with filter buttons at the top: All, In person, Online.
-- **Past events drop off automatically.** A past exhibition disappears. A past webinar moves to an **"On demand"** section with its recording, so webinars keep working as content after they've happened.
-- Each entry also has an **"Add to calendar"** link (an .ics file), so the page still gives people the calendar convenience.
+- **Each entry carries a type tag** (Exhibition, Conference talk, Webinar). The page has two sections, **In person** and **Online**.
+- **Past events are removed by hand** (no code). A past exhibition is deleted from the page. A past webinar moves to an **"On demand"** section with its recording, so webinars keep working as content after they've happened.
+- Each entry also has an **"Add to calendar"** link (an .ics file in the Media Library).
 
-## How events are stored
+## Light-touch build: existing template, core blocks only
 
-Staff must be able to add an event without a developer.
+Labskin production is not fully under our control yet, so this page must be something Ben can **recreate on labskin.co.uk through the WordPress editor alone**. No theme files, no PHP, no new plugin, no custom post type.
 
-- Add a lightweight **`event` custom post type** in the child theme (no events plugin). Edit it under **Events** in wp-admin.
-- Fields (native meta boxes, no ACF dependency):
+- Use the theme's **existing default page template**. Nothing new is registered.
+- Build the page from **core blocks only** (Group, Columns, Heading, Paragraph, Buttons, Separator, Details) plus the theme's existing styles and colours. A little polish is fine, as long as it comes from block settings (spacing, background colour, border radius) and not custom CSS.
+- **Each event is a Group block** ("event card") saved as a **synced pattern** called "Event card", so staff copy it, fill it in and drop it into the list. They remove past events by hand. That small manual step is the price of not adding code.
+- **Webinars** use the same card with an "Online" tag. When one has happened, move its card to the **On demand** section and change the button to "Watch the recording".
+- **Filters** (All / In person / Online) need JavaScript, so leave them out. Two headed sections, **In person** and **Online**, do the same job with no code.
+- **Add to calendar:** a link to an .ics file uploaded to the Media Library for each event. VS Code generates the .ics files; on production they are uploaded through Media.
+- **Structured data:** leave it out of this version. It can come later through AIOSEO's schema settings, which are configured in the UI.
 
-| Field | Notes |
-|---|---|
-| Title | e.g. "SCS Formulate 2026" |
-| Type | Exhibition / Conference talk / Webinar |
-| Start date and time, End date and time | Europe/London; show the time zone for webinars |
-| Venue, City, Country | Blank for webinars |
-| Stand or session | e.g. "Stand 42" or "Talk, Hall 2, 14:00" |
-| Who will be there | Free text, optional, e.g. "Our business development team". No names unless Ben agrees |
-| Summary | Two or three sentences |
-| Book a meeting URL | HubSpot meetings link (exhibitions) |
-| Register URL | HubSpot webinar registration form or landing page (webinars) |
-| Recording URL | Added after a webinar; moves it to On demand |
-| External event page | Organiser's page |
+### Deliverable for production
 
-- Templates: `archive-event.php` (or a page template for `/events/`) and `single-event.php`, so each event also has its own shareable URL.
+- `pages/events.html` in this repo: the page's **block markup** (the editor's Code view), with placeholder events.
+- `pages/event-card.html`: the pattern's block markup.
+- `pages/README-events.md`: the steps to put it live:
+  1. On labskin.co.uk, create a new page "Meet Labskin" as a **draft**, slug `events`.
+  2. Open the Code editor and paste `events.html`. Switch back to the visual editor and check that **no block shows "This block contains unexpected or invalid content"**.
+  3. Preview on desktop and mobile.
+  4. Publish.
+  5. Add the footer and menu link under Appearance.
+  - **Rollback:** switch the page back to Draft and remove the link.
 
 ## Each listing shows
 
@@ -53,12 +54,7 @@ Staff must be able to add an event without a developer.
 
 ## Lead-source tracking
 
-Every button carries the event slug, so HubSpot records **which event a lead came from**. This feeds the lead-source work and, later, the cockpit's enquiries section. If the meeting booking or registration form has a hidden "Event" field, set it from the URL too.
-
-## Search and structured data
-
-- Output **schema.org `Event`** JSON-LD for each upcoming event (`eventAttendanceMode` Offline or Online, `location` Place or VirtualLocation, `organizer` Labskin), so Google can show events in search.
-- Include `/events/` and single events in the AIOSEO sitemap. This ties in with WO-004.
+Every button link carries `utm_source=website&utm_medium=events&utm_campaign=<event-slug>`, typed into the block's link, so HubSpot records **which event a lead came from**. This feeds the lead-source work and, later, the cockpit's enquiries section.
 
 ## Page copy (intro)
 
@@ -86,24 +82,22 @@ The existing "Labskin-Mel" webinar registration form in HubSpot is a model for t
 
 ## Navigation
 
-- Add **Events** to the footer's company links, and to the main menu if Ben agrees.
-- Optional, later: a small "Next event" line on the homepage.
+- Add **Events** to the footer's company links, and to the main menu if Ben agrees. On production, this is done in the UI (Appearance), not in code.
 
 ## Constraints
 
 - Staging only, following the Staging Deployment Rules. Never print or commit keys, passwords or tokens.
-- No events plugin. Keep the custom post type small, and keep it in the child theme so it survives theme updates.
+- No theme code, no custom post type, no new plugin, no custom CSS. Core blocks and existing theme styles only.
 - On staging, the HubSpot meetings and registration links go to the live HubSpot account. Use test bookings sparingly and cancel them afterwards.
-- Accessibility: filter buttons are real buttons with `aria-pressed`, the dates are readable by screen readers, and the layout works at 390 px.
+- Accessibility: headings in order, dates written out in full, buttons with clear text, and the layout works at 390 px.
 
 ## Verification
 
-1. Add the four events plus one past webinar with a recording. Check the list order, the type tags, the filters, and the past exhibition being hidden.
+1. Build the page on staging **through the editor**, using only the pasted markup from `pages/events.html`, exactly as Ben will on production. Check that no block reports invalid content, and check the order, the tags and the On demand section.
 2. Add to calendar downloads an .ics that opens correctly in Outlook and Google Calendar, with the right time zone.
 3. The buttons carry the UTM parameters, and a test booking shows the event in HubSpot.
-4. The structured data validates in Google's Rich Results Test (paste the staging HTML).
 5. Desktop and 390 px, no horizontal scroll. Footer link works.
-6. A non-technical test: add an event in wp-admin using only the field labels, and it appears correctly.
+6. A non-technical test: add a new event by inserting the "Event card" pattern and filling it in, then remove one.
 
 ## Delivery
 
