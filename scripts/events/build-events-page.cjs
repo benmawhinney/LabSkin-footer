@@ -115,11 +115,16 @@ const sticker = (text) => b('core/paragraph', {
 });
 
 // Venue line: a Google Maps link (opens the Maps app on phones), with a pin.
+// Deliberately not styled as a link (Ben: a "surprise and delight" detail), so
+// no underline and the text colour is inherited. Padding makes a 44px-tall tap
+// area; the equal negative margin keeps the layout exactly as it was. Inline
+// style on the link, in the page content: no theme CSS needed.
 const MAP_PIN = '📍';
+const MAP_LINK_STYLE = 'text-decoration:none;color:inherit;display:inline-block;padding:12px 0;margin:-12px 0';
 function venueHtml(venue, mapQuery) {
 	if (!mapQuery) return venue;
 	const href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
-	return `<a href="${href}" target="_blank" rel="noreferrer noopener">${MAP_PIN} ${venue}</a>`;
+	return `<a href="${href}" target="_blank" rel="noreferrer noopener" style="${MAP_LINK_STYLE}">${MAP_PIN} ${venue}</a>`;
 }
 
 const button = (text, url, primary, newTab) => b('core/button', {
