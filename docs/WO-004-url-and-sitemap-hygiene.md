@@ -1,6 +1,6 @@
 # WO-004 - Clean URLs, Redirects and Sitemap Hygiene
 
-**Status:** Ready to execute (staging only)
+**Status:** Not started. Planned as the next change after WO-008 (events page) is live. Ben is briefing the Labskin IT contacts; do not begin any step until Ben says so.
 **Raised:** Friday 16 October 2026, by Ben
 **Branch:** `feature/url-hygiene`, created from `feature/meeples-footer` (the state deployed on staging, so nothing deployed gets reverted)
 **Target:** M&C dev/staging only (https://mischiefandcraft.com). Do not touch Labskin production (https://labskin.co.uk). Production needs its own release plan after sign-off, because production is on different hosting (OVHcloud) from staging (Lightsail).
@@ -27,6 +27,45 @@ Remove `/index.php/` from every URL, keep every old URL working with a single 30
   | `/terms-of-service` | 2 |
 
 - `/an-introduction-to-the-skin-microbiome-a-whitepaper-by-labskin/` is tracked by HubSpot without `/index.php/` and is not in the sitemap. Find out what serves it.
+
+## Diagnosis: why `/index.php/` is in every URL (19-20 Oct 2026)
+
+From public, read-only checks of labskin.co.uk and the staging copy (which was made from a production backup):
+
+- **It is a WordPress setting, not a server fault.** The stored permalink structure is `/index.php/%year%/%monthnum%/%day%/%postname%/` ("almost pretty" or PATHINFO permalinks), so WordPress generates every link with `/index.php/` and only recognises URLs in that form.
+- **The server already supports clean URLs.** On production, `/about-us/` returns WordPress's own "Page not found - Labskin" page (not a bare Apache error), and `/wp-json/` works with and without `/index.php/`. So Apache rewriting and the WordPress `.htaccess` rules are already working; only the setting needs to change. This answers the Step 0 production question below.
+- **Likely cause:** WordPress adds `/index.php/` when the permalink style is chosen on a server where it cannot confirm URL rewriting, typically during an install or migration (All-in-One WP Migration and Duplicator are installed, which suggests the site was moved). It was never changed back after the move to OVHcloud. Not proven, but consistent with the evidence.
+- **Staging is the mirror image:** its web server does not pass the path after `index.php`, so `/index.php/...` URLs 404 there and clean URLs work. Until this WO is done, production and staging need different links (see `scripts/events/events.json`, `sites`, on `feature/events-page`).
+- **Hosting:** production is OVHcloud shared web hosting, `cluster023.hosting.ovh.net` (Gravelines), Apache, PHP 8.5, WordPress 7.1.3, Inspiro 1.8.7.
+
+### The production change, in outline (not to be run yet)
+
+1. Take and verify our own backup (database and `wp-content`), as in `pages/ROLLOUT-events-production.md` Phase 2 (on `feature/events-page`).
+2. Record the exact current value of Settings → Permalinks (the custom structure above) in the EOD report before changing anything.
+3. Settings → Permalinks → the agreed structure (default: keep dates, drop `/index.php`). This is a Tier 2 UI change.
+4. Straight away, add the Redirection plugin rule `^/index\.php/(.*)` → `/$1` (301), so old links keep working.
+5. Run the verification table below against production.
+
+## Recovery procedure (if a production change goes wrong)
+
+Use the lightest step that fixes the problem. Each level is only needed if the one before did not work.
+
+| Level | When | What to do | Time |
+|---|---|---|---|
+| 1. Undo the setting | Links or pages break after the permalink switch | Settings → Permalinks → paste back the exact old structure (recorded in step 2) and save; disable the Redirection rule. The site returns to its previous URLs. Nothing else has changed. | Minutes |
+| 2. Restore a single file | One file damaged (for example `.htaccess`) | Connect by FTP as `<ftp-user>-snap0` (today 00:01), `-snap1` (yesterday) ... `-snap4` (two Sundays ago). This is a read-only copy; download the file, then upload it to the live space with the normal login. | Minutes |
+| 3. Restore the database | Content or settings damaged | Import our own pre-change database export (preferred: it is from minutes before the change). OVHcloud also keeps daily database backups for 30 days: Hosting plans → Databases → `...` → Restore a backup, which lets you **download** a backup; importing it is a separate step. | 15-60 minutes |
+| 4. Restore the whole web space | Many files damaged | Hosting plans → FTP-SSH → **Restore backup** → choose D-1, D-2, D-3, 1 week or 2 weeks → Confirm. **This replaces the entire web space**: anything added since that backup is lost. It needs at least **half the plan's storage free**, and does not restore the database. | Minutes to hours |
+| 5. Blue/green | Production cannot be recovered in place | Repoint DNS to a copy of the site. The M&C staging copy has drifted, so it is not ready for this today. | Hours |
+
+**Before the change, check:**
+- Disk space used vs plan limit (Hosting plans → General information → Disk space). If more than half is used, level 4 is not available until space is freed.
+- Who holds Control Panel access, and that they are reachable during the change window.
+- The date and time of the latest OVHcloud backups, so we know which restore point is pre-change.
+
+OVHcloud states its backups are non-contractual and recommends keeping your own, which is why our own backup is taken first.
+
+Sources: OVHcloud docs, [Restoring your Web Hosting plan's storage space](https://docs.ovhcloud.com/en/guides/web-cloud/web-hosting/ftp-save-and-backup), [Retrieving the backup of a Web Hosting plan's database](https://docs.ovhcloud.com/en/guides/web-cloud/web-hosting/sql-database-export), [My database is full, what should I do?](https://docs.ovhcloud.com/en/guides/web-cloud/web-hosting/sql-overquota-database).
 
 ## Step 0: audit and report (no changes)
 
