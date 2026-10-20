@@ -21,7 +21,7 @@ Work order: WO-008 (issue #5). Staging signed off by Ben on 2026-10-19. Producti
 ## Hosting (public lookups, 2026-10-19)
 
 - **OVHcloud shared web hosting**, `cluster023.hosting.ovh.net` (Gravelines), Apache, PHP 8.5. DNS on OVHcloud (`dns105`/`ns105.ovh.net`); mail on Microsoft 365 (unaffected by this work).
-- Shared hosting means no root and no server config to break, but also: SSH only exists on some plans, it is a restricted shell, and the account has a **disk quota** and **resource limits**. Filling the quota or tripping the limits can take the site down, so nothing large is written to the webspace.
+- Shared hosting means no root and no server config to break, but also: SSH only exists on some plans, it is a restricted shell, and the plan has storage and database quotas. What OVHcloud documents: a database over its quota switches to **read-only** (pages still display, but nothing can be saved or published), and the one-click web-space restore needs **at least half the storage free**. Current usage is unknown until checked (Phase 1, or Hosting plans → General information → Disk space). Either way, nothing large is written to the webspace.
 - OVHcloud web hosting has automatic backups (panel: Web Hosting → FTP-SSH → Restore a backup); **never tested**. The M&C staging copy is the fallback, but it has drifted, so it is not a ready blue/green target.
 
 ## Ground rules
