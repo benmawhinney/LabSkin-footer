@@ -65,10 +65,14 @@ function fullDate(start, end) {
 const SHORT_MONTHS = MONTHS.map((m) => m.slice(0, 3).toUpperCase());
 
 // Date badge: "4–5" over "NOV"; "30–1" over "NOV–DEC" across months.
+// Word joiners (U+2060) around the dash stop "10–11" breaking onto two lines;
+// 84px leaves room for it (69px wide in Inter on production, 68px fitted at 76px).
+const NOBREAK_DASH = '⁠–⁠';
+const BADGE_WIDTH = '84px';
 function badge(start, end) {
 	const s = day(start), e = day(end);
-	const days = start === end ? `${s.getUTCDate()}` : `${s.getUTCDate()}–${e.getUTCDate()}`;
-	const months = s.getUTCMonth() === e.getUTCMonth() ? SHORT_MONTHS[s.getUTCMonth()] : `${SHORT_MONTHS[s.getUTCMonth()]}–${SHORT_MONTHS[e.getUTCMonth()]}`;
+	const days = start === end ? `${s.getUTCDate()}` : `${s.getUTCDate()}${NOBREAK_DASH}${e.getUTCDate()}`;
+	const months = s.getUTCMonth() === e.getUTCMonth() ? SHORT_MONTHS[s.getUTCMonth()] : `${SHORT_MONTHS[s.getUTCMonth()]}${NOBREAK_DASH}${SHORT_MONTHS[e.getUTCMonth()]}`;
 	const line = (content, typography) => b('core/paragraph', {
 		content, textColor: 'primary',
 		style: { typography: { textAlign: 'center', lineHeight: '1.1', ...typography }, spacing: { margin: { top: '0', bottom: '0' } } },
@@ -78,7 +82,7 @@ function badge(start, end) {
 		style: {
 			border: { radius: '10px' },
 			spacing: { padding: { top: '12px', right: '4px', bottom: '12px', left: '4px' }, blockGap: '4px' },
-			layout: { selfStretch: 'fixedNoShrink', flexSize: '76px' },
+			layout: { selfStretch: 'fixedNoShrink', flexSize: BADGE_WIDTH },
 		},
 		layout: { type: 'default' },
 	}, [
