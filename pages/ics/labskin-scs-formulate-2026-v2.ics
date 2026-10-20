@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:scs-formulate-2026@labskin.co.uk
+DTSTAMP:20261020T133751Z
+SEQUENCE:1
+DTSTART;VALUE=DATE:20261110
+DTEND;VALUE=DATE:20261112
+TRANSP:TRANSPARENT
+SUMMARY:SCS Formulate - meet Labskin
+LOCATION:Coventry Building Society Arena\, Coventry
+DESCRIPTION:The leading formulation and personal care event.\n\nBook a meet
+ ing with Labskin: https://labskin.co.uk/index.php/events/
+END:VEVENT
+END:VCALENDAR

@@ -36,6 +36,9 @@ Object.assign(data, data.sites[SITE]);
 const OUT = SITE === 'production' ? path.join(ROOT, 'pages') : path.join(ROOT, 'pages', SITE);
 const UTM = 'utm_source=website&utm_medium=events&utm_campaign=';
 const LOGOS = JSON.parse(fs.readFileSync(path.join(ROOT, 'pages', 'logos', 'logos.json'), 'utf8'));
+// A changed .ics gets a new file name ("icsRev": "v2"), because re-uploading the
+// same name makes WordPress save it as "-1" and the page link would miss it.
+const icsName = (e) => `labskin-${e.slug}${e.icsRev ? `-${e.icsRev}` : ''}.ics`;
 
 // ---- Dates -----------------------------------------------------------------
 
@@ -228,14 +231,14 @@ const listings = [
 		return {
 			start: e.start, type: e.type, name: e.name, end: e.end, when, venue: e.venue, mapQuery: e.mapQuery, stand: e.stand, description: e.description,
 			bookingText: `Book a meeting at ${e.name}`, bookingHref: bookingUrl(e, when),
-			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}labskin-${e.slug}.ics`, logo: LOGOS[e.slug],
+			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}${icsName(e)}`, logo: LOGOS[e.slug],
 		};
 	}),
 	...webinars.map((w) => ({
 		start: w.start, type: 'Webinar', name: w.name, end: w.start,
 		when: `${fullDate(w.start, w.start)}, ${clock(w.startTime)} UK time`, venue: 'Online', description: w.description, topics: w.topics,
 		registerHref: `${w.registerUrl}${w.registerUrl.includes('?') ? '&' : '?'}${UTM}${w.slug}`,
-		icsHref: `${data.icsBaseUrl}labskin-${w.slug}.ics`,
+		icsHref: `${data.icsBaseUrl}${icsName(w)}`,
 	})),
 ].sort((x, y) => x.start.localeCompare(y.start));
 
@@ -317,23 +320,26 @@ function londonToUtc(isoDate, hhmm) {
 }
 const icsUtc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
 
-function writeIcs(slug, when, summary, location, description) {
+// The UID stays the same and SEQUENCE goes up with "icsRev", so calendars update the event.
+function writeIcs(e, when, summary, location, description) {
+	const sequence = e.icsRev ? Number(String(e.icsRev).replace(/\D/g, '')) - 1 || 1 : 0;
 	const lines = [
 		'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Labskin//Events//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
 		'BEGIN:VEVENT',
-		`UID:${slug}@labskin.co.uk`,
+		`UID:${e.slug}@labskin.co.uk`,
 		`DTSTAMP:${stamp}`,
+		...(sequence ? [`SEQUENCE:${sequence}`] : []),
 		...when,
 		`SUMMARY:${esc(summary)}`,
 		`LOCATION:${esc(location)}`,
 		`DESCRIPTION:${esc(description)}`,
 		'END:VEVENT', 'END:VCALENDAR',
 	];
-	fs.writeFileSync(path.join(OUT, 'ics', `labskin-${slug}.ics`), lines.map(fold).join('\r\n') + '\r\n');
+	fs.writeFileSync(path.join(OUT, 'ics', icsName(e)), lines.map(fold).join('\r\n') + '\r\n');
 }
 
 for (const e of events) {
-	writeIcs(e.slug,
+	writeIcs(e,
 		[`DTSTART;VALUE=DATE:${icsDate(e.start)}`, `DTEND;VALUE=DATE:${icsDate(nextDay(e.end))}`, 'TRANSP:TRANSPARENT'],
 		`${e.name} - meet Labskin`, e.venue,
 		`${e.description ? `${e.description}\n\n` : ''}Book a meeting with Labskin: ${data.eventsPageUrl}`);
@@ -341,7 +347,7 @@ for (const e of events) {
 for (const w of webinars) {
 	const start = londonToUtc(w.start, w.startTime);
 	const end = new Date(start.getTime() + w.durationMinutes * 60000);
-	writeIcs(w.slug, [`DTSTART:${icsUtc(start)}`, `DTEND:${icsUtc(end)}`],
+	writeIcs(w, [`DTSTART:${icsUtc(start)}`, `DTEND:${icsUtc(end)}`],
 		w.name, 'Online', `${w.description}${(w.topics || []).map((t) => `\n- ${t}`).join('')}\n\nRegister: ${w.registerUrl}`);
 }
 console.log(`ics: ${events.length + webinars.length} files`);

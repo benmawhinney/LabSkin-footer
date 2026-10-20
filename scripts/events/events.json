@@ -35,11 +35,14 @@
       "name": "SCS Formulate",
       "type": "Exhibition",
       "start": "2026-11-10",
-      "end": "2026-11-10",
+      "end": "2026-11-11",
       "venue": "Coventry Building Society Arena, Coventry",
       "description": "The leading formulation and personal care event.",
       "registrationUrl": "https://scsformulate2026.eventreference.com/register.php",
-      "mapQuery": "Coventry Building Society Arena, Coventry CV6 6GE"
+      "mapQuery": "Coventry Building Society Arena, Coventry CV6 6GE",
+      "stand": "117",
+      "icsRev": "v2",
+      "staffNote": "Stewart on 10 Nov; Nicola and others on 11 Nov (Ben, 2026-10-20)."
     },
     {
       "slug": "pave-conference-2026",
