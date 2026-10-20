@@ -119,12 +119,15 @@ const sticker = (text) => b('core/paragraph', {
 // no underline and the text colour is inherited. Padding makes a 44px-tall tap
 // area; the equal negative margin keeps the layout exactly as it was. Inline
 // style on the link, in the page content: no theme CSS needed.
-const MAP_PIN = '📍';
 const MAP_LINK_STYLE = 'text-decoration:none;color:inherit;display:inline-block;padding:12px 0;margin:-12px 0';
+// Brand-teal pin (scripts/events/prepare-logos.cjs), 1em tall to match the text.
+// Decorative (alt=""): the venue name is the link text. The 2px left nudge lines
+// the round pin up optically with the square date badge above it.
+const MAP_PIN = () => `<img src="${data.mediaBaseUrl}map-pin-brand.webp" alt="" width="34" height="48" style="height:1em;width:auto;vertical-align:-0.15em;margin:0 0.4em 0 2px">`;
 function venueHtml(venue, mapQuery) {
 	if (!mapQuery) return venue;
 	const href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
-	return `<a href="${href}" target="_blank" rel="noreferrer noopener" style="${MAP_LINK_STYLE}">${MAP_PIN} ${venue}</a>`;
+	return `<a href="${href}" target="_blank" rel="noreferrer noopener" style="${MAP_LINK_STYLE}">${MAP_PIN()}${venue}</a>`;
 }
 
 const button = (text, url, primary, newTab) => b('core/button', {

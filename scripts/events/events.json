@@ -26,7 +26,9 @@
       "venue": "NEC, Birmingham",
       "description": "The UK’s leading event for laboratory technology, innovation and science.",
       "registrationUrl": "https://register.visitcloud.com/survey/1cipf65f1hdn9",
-      "mapQuery": "NEC, Birmingham B40 1NT"
+      "mapQuery": "NEC, Birmingham B40 1NT",
+      "stand": "H80",
+      "standNote": "Ben thinks H80 (2026-10-20); confirm before relying on it."
     },
     {
       "slug": "scs-formulate-2026",

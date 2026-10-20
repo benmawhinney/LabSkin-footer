@@ -61,4 +61,14 @@ const jobs = [
   // Display size in CSS px (files are 2x), read by build-events-page.cjs.
   require('fs').writeFileSync(OUT + 'logos.json', JSON.stringify(sizes, null, 2) + '\n');
   console.log(JSON.stringify(sizes));
+
+  // Map pin: Ben's SVG, recoloured to the brand teal and cropped to the pin
+  // (viewBox), rendered 48px tall (3x a 16px line) as lossless WebP. WordPress
+  // won't accept SVG uploads, so a raster is used; it is shown at 1em.
+  const pinSvg = require('fs').readFileSync(SRC + 'labskin-teal-map-pin.svg', 'utf8');
+  const pinPath = pinSvg.match(/<path[\s\S]*?\/>/)[0].replace(/fill="#[0-9a-fA-F]+"/, 'fill="#0bb4aa"');
+  const pin = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="96 26 320 446">${pinPath}</svg>`), { density: 600 })
+    .resize({ height: 48 }).webp({ lossless: true, effort: 6 }).toBuffer();
+  require('fs').writeFileSync(OUT + 'map-pin-brand.webp', pin);
+  console.log(`map-pin-brand.webp: ${pin.length} bytes`);
 })();
