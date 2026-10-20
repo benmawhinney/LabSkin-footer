@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:pave-conference-2026@labskin.co.uk
+DTSTAMP:20261020T113348Z
+DTSTART;VALUE=DATE:20261111
+DTEND;VALUE=DATE:20261112
+TRANSP:TRANSPARENT
+SUMMARY:PAVE Conference - meet Labskin
+LOCATION:De Montfort University\, Leicester
+DESCRIPTION:Bringing together industry\, academia and innovation in the lif
+ e sciences.\n\nBook a meeting with Labskin: https://mischiefandcraft.com/e
+ vents/
+END:VEVENT
+END:VCALENDAR
