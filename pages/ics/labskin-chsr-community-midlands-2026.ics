@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:chsr-community-midlands-2026@labskin.co.uk
+DTSTAMP:20261020T113044Z
+DTSTART;VALUE=DATE:20261124
+DTEND;VALUE=DATE:20261125
+TRANSP:TRANSPARENT
+SUMMARY:Centre for Human Specific Research Community Midlands - meet Labski
+ n
+LOCATION:Senate Chamber\, Trent Building\, University of Nottingham
+DESCRIPTION:Book a meeting with Labskin: https://labskin.co.uk/index.php/ev
+ ents/
+END:VEVENT
+END:VCALENDAR

@@ -1,5 +1,5 @@
 {
-  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar length 60 minutes assumed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it. Site-specific links are under \"sites\": production uses /index.php/ URLs, staging uses clean URLs. Set the uploads month to the month the files are uploaded.",
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar length 60 minutes assumed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it. Site-specific links are under \"sites\": production uses /index.php/ URLs, staging uses clean URLs. Set the uploads month to the month the files are uploaded. Optional per event: \"stand\" (shows a STAND sticker), \"mapQuery\" (Google Maps search for the pin link), \"description\".",
   "sites": {
     "production": {
       "bookingBaseUrl": "/index.php/contact-us/",
@@ -25,7 +25,8 @@
       "end": "2026-11-05",
       "venue": "NEC, Birmingham",
       "description": "The UK’s leading event for laboratory technology, innovation and science.",
-      "registrationUrl": "https://register.visitcloud.com/survey/1cipf65f1hdn9"
+      "registrationUrl": "https://register.visitcloud.com/survey/1cipf65f1hdn9",
+      "mapQuery": "NEC, Birmingham B40 1NT"
     },
     {
       "slug": "scs-formulate-2026",
@@ -35,7 +36,8 @@
       "end": "2026-11-10",
       "venue": "Coventry Building Society Arena, Coventry",
       "description": "The leading formulation and personal care event.",
-      "registrationUrl": "https://scsformulate2026.eventreference.com/register.php"
+      "registrationUrl": "https://scsformulate2026.eventreference.com/register.php",
+      "mapQuery": "Coventry Building Society Arena, Coventry CV6 6GE"
     },
     {
       "slug": "pave-conference-2026",
@@ -46,7 +48,8 @@
       "venue": "De Montfort University, Leicester",
       "description": "Bringing together industry, academia and innovation in the life sciences.",
       "hidden": true,
-      "hiddenReason": "May be invitation only (Ben, 2026-10-19). Remove hidden to show it again."
+      "hiddenReason": "May be invitation only (Ben, 2026-10-19). Remove hidden to show it again.",
+      "mapQuery": "De Montfort University, Leicester LE1 9BH"
     },
     {
       "slug": "skin-at-bath-2026",
@@ -56,7 +59,17 @@
       "end": "2026-12-11",
       "venue": "The Guildhall, Bath",
       "description": "The premier meeting place for skin research, innovation and commercialisation.",
-      "registrationUrl": "https://skinatbath.org/registration/"
+      "registrationUrl": "https://skinatbath.org/registration/",
+      "mapQuery": "The Guildhall, High Street, Bath BA1 5AW"
+    },
+    {
+      "slug": "chsr-community-midlands-2026",
+      "name": "Centre for Human Specific Research Community Midlands",
+      "type": "Conference",
+      "start": "2026-11-24",
+      "end": "2026-11-24",
+      "venue": "Senate Chamber, Trent Building, University of Nottingham",
+      "mapQuery": "Trent Building, University of Nottingham, Nottingham NG7 2RD"
     }
   ],
   "webinars": [

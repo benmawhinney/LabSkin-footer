@@ -75,7 +75,7 @@ function badge(start, end) {
 		style: {
 			border: { radius: '10px' },
 			spacing: { padding: { top: '12px', right: '4px', bottom: '12px', left: '4px' }, blockGap: '4px' },
-			layout: { selfStretch: 'fixed', flexSize: '76px' },
+			layout: { selfStretch: 'fixedNoShrink', flexSize: '76px' },
 		},
 		layout: { type: 'default' },
 	}, [
@@ -101,6 +101,25 @@ function tag(text, highlight) {
 			},
 		}),
 	]);
+}
+
+// Stand sticker: dark pill (white on #101010) beside the type tag, so a visitor
+// at the venue can find the stand. Only shown when a stand number is known.
+const sticker = (text) => b('core/paragraph', {
+	content: text, backgroundColor: 'primary', textColor: 'white',
+	style: {
+		typography: { fontSize: '13px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1.5px', lineHeight: '1.2' },
+		border: { radius: '6px' },
+		spacing: { padding: { top: '4px', right: '10px', bottom: '4px', left: '10px' }, margin: { top: '0', bottom: '0' } },
+	},
+});
+
+// Venue line: a Google Maps link (opens the Maps app on phones), with a pin.
+const MAP_PIN = '📍';
+function venueHtml(venue, mapQuery) {
+	if (!mapQuery) return venue;
+	const href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+	return `<a href="${href}" target="_blank" rel="noreferrer noopener">${MAP_PIN} ${venue}</a>`;
 }
 
 const button = (text, url, primary, newTab) => b('core/button', {
@@ -129,7 +148,7 @@ function logoBlock(logo) {
 
 // Card: badge beside the tag and title; details and buttons use the full width
 // underneath, so the text is not squeezed on a phone.
-function card({ type, name, start, end, when, venue, description, topics, bookingHref, bookingText, registerHref, icsHref, logo }) {
+function card({ type, name, start, end, when, venue, mapQuery, stand, description, topics, bookingHref, bookingText, registerHref, icsHref, logo }) {
 	// Registration (events and webinars) always uses the outline button and opens in a new tab.
 	const buttons = bookingHref ? [button(bookingText, bookingHref, true)] : [];
 	if (registerHref) buttons.push(button(type === 'Webinar' ? 'Register for this webinar' : 'Register for this event', registerHref, false, true));
@@ -140,7 +159,12 @@ function card({ type, name, start, end, when, venue, description, topics, bookin
 	}, [
 		badge(start, end),
 		b('core/group', { style: { spacing: { blockGap: '6px' } }, layout: { type: 'default' } }, [
-			tag(type, type === 'Webinar'),
+			stand
+				? b('core/group', { style: { spacing: { blockGap: '10px' } }, layout: { type: 'flex', flexWrap: 'wrap', verticalAlignment: 'center' } }, [
+					tag(type, type === 'Webinar'),
+					sticker(`Stand ${stand}`),
+				])
+				: tag(type, type === 'Webinar'),
 			b('core/heading', { level: 3, content: name, style: { spacing: { margin: { top: '0', bottom: '0' } } } }),
 		]),
 	]);
@@ -151,8 +175,11 @@ function card({ type, name, start, end, when, venue, description, topics, bookin
 				layout: { type: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', verticalAlignment: 'center' },
 			}, [title, logoBlock(logo)])
 			: title,
-		b('core/paragraph', { content: `<strong>${when}</strong><br>${venue}`, style: { spacing: { margin: { top: '18px' } } } }),
-		b('core/paragraph', { content: description }),
+		b('core/paragraph', {
+			content: `<strong>${when}</strong><br>${venueHtml(venue, mapQuery)}`,
+			style: { elements: { link: { color: { text: 'var:preset|color|primary' } } }, spacing: { margin: { top: '18px' } } },
+		}),
+		...(description ? [b('core/paragraph', { content: description })] : []),
 		...(topics && topics.length ? [b('core/list', {}, topics.map((t) => b('core/list-item', { content: t })))] : []),
 		b('core/buttons', { style: { spacing: { margin: { top: '18px' }, blockGap: '10px' } } }, buttons),
 	];
@@ -191,7 +218,7 @@ const listings = [
 	...events.map((e) => {
 		const when = fullDate(e.start, e.end);
 		return {
-			start: e.start, type: e.type, name: e.name, end: e.end, when, venue: e.venue, description: e.description,
+			start: e.start, type: e.type, name: e.name, end: e.end, when, venue: e.venue, mapQuery: e.mapQuery, stand: e.stand, description: e.description,
 			bookingText: `Book a meeting at ${e.name}`, bookingHref: bookingUrl(e, when),
 			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}labskin-${e.slug}.ics`, logo: LOGOS[e.slug],
 		};
@@ -301,7 +328,7 @@ for (const e of events) {
 	writeIcs(e.slug,
 		[`DTSTART;VALUE=DATE:${icsDate(e.start)}`, `DTEND;VALUE=DATE:${icsDate(nextDay(e.end))}`, 'TRANSP:TRANSPARENT'],
 		`${e.name} - meet Labskin`, e.venue,
-		`${e.description}\n\nBook a meeting with Labskin: ${data.eventsPageUrl}`);
+		`${e.description ? `${e.description}\n\n` : ''}Book a meeting with Labskin: ${data.eventsPageUrl}`);
 }
 for (const w of webinars) {
 	const start = londonToUtc(w.start, w.startTime);
