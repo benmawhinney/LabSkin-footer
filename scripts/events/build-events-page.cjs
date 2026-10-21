@@ -163,10 +163,10 @@ function logoBlock(logo) {
 
 // Card: badge beside the tag and title; details and buttons use the full width
 // underneath, so the text is not squeezed on a phone.
-function card({ type, name, start, end, when, venue, mapQuery, stand, description, topics, bookingHref, bookingText, registerHref, icsHref, logo }) {
+function card({ type, name, start, end, when, venue, mapQuery, stand, description, topics, bookingHref, bookingText, registerHref, registerText, icsHref, logo }) {
 	// Registration (events and webinars) always uses the outline button and opens in a new tab.
 	const buttons = bookingHref ? [button(bookingText, bookingHref, true)] : [];
-	if (registerHref) buttons.push(button(type === 'Webinar' ? 'Register for this webinar' : 'Register for this event', registerHref, false, true));
+	if (registerHref) buttons.push(button(registerText || (type === 'Webinar' ? 'Register for this webinar' : 'Register for this event'), registerHref, false, true));
 	const title = b('core/group', {
 		// Fill: take the row's spare width so the title doesn't wrap beside the logo.
 		style: { spacing: { blockGap: '16px' }, layout: { selfStretch: 'fill', flexSize: null } },
@@ -235,7 +235,7 @@ const listings = [
 		return {
 			start: e.start, type: e.type, name: e.name, end: e.end, when, venue: e.venue, mapQuery: e.mapQuery, stand: e.stand, description: e.description,
 			bookingText: `Book a meeting at ${e.name}`, bookingHref: bookingUrl(e, when),
-			registerHref: e.registrationUrl, icsHref: `${data.icsBaseUrl}${icsName(e)}`, logo: LOGOS[e.slug],
+			registerHref: e.registrationUrl, registerText: e.registrationText, icsHref: `${data.icsBaseUrl}${icsName(e)}`, logo: e.logo || LOGOS[e.slug],
 		};
 	}),
 	...webinars.map((w) => ({

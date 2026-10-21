@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Labskin//Events//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:mha-industry-gateway-2026@labskin.co.uk
+DTSTAMP:20261021T141534Z
+DTSTART;VALUE=DATE:20261117
+DTEND;VALUE=DATE:20261118
+TRANSP:TRANSPARENT
+SUMMARY:Midlands Health Alliance Industry Gateway Co-Creation Event - meet 
+ Labskin
+LOCATION:1880 Lounge\, Mattioli Woods Welford Road Stadium\, Leicester
+DESCRIPTION:Businesses meet Midlands health research\, clinical\, NHS and i
+ nnovation partners to help shape the Midlands Health Alliance Industry Gat
+ eway. Organised by Medilink Midlands.\n\nBook a meeting with Labskin: http
+ s://labskin.co.uk/index.php/events/
+END:VEVENT
+END:VCALENDAR

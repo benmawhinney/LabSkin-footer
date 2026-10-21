@@ -1,5 +1,5 @@
 {
-  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar length 60 minutes assumed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it. Site-specific links are under \"sites\": production uses /index.php/ URLs, staging uses clean URLs. Set the uploads month to the month the files are uploaded. Optional per event: \"stand\" (shows a STAND sticker), \"mapQuery\" (Google Maps search for the pin link), \"description\".",
+  "_comment": "WO-008 event data. Sorted by start date when the page is built. Year 2026 assumed (not shown on the supplied graphic) - confirm before publishing. Webinar length 60 minutes assumed. Add \"registrationUrl\" to an event to show a \"Register for this event\" button (opens in a new tab). Set \"hidden\": true to leave an event off the page without deleting it. Site-specific links are under \"sites\": production uses /index.php/ URLs, staging uses clean URLs. Set the uploads month to the month the files are uploaded. Optional per event: \"stand\" (shows a STAND sticker), \"mapQuery\" (Google Maps search for the pin link), \"description\". Optional \"logo\": {file,width,height} for a logo already in the Media Library (overrides pages/logos). Optional \"registrationText\" changes the Register button label.",
   "sites": {
     "production": {
       "bookingBaseUrl": "/index.php/contact-us/",
@@ -73,6 +73,24 @@
       "end": "2026-11-24",
       "venue": "Senate Chamber, Trent Building, University of Nottingham",
       "mapQuery": "Trent Building, University of Nottingham, Nottingham NG7 2RD"
+    },
+    {
+      "slug": "mha-industry-gateway-2026",
+      "name": "Midlands Health Alliance Industry Gateway Co-Creation Event",
+      "type": "Conference",
+      "start": "2026-11-17",
+      "end": "2026-11-17",
+      "venue": "1880 Lounge, Mattioli Woods Welford Road Stadium, Leicester",
+      "mapQuery": "Mattioli Woods Welford Road Stadium, Aylestone Road, Leicester LE2 7TR",
+      "description": "Businesses meet Midlands health research, clinical, NHS and innovation partners to help shape the Midlands Health Alliance Industry Gateway. Organised by Medilink Midlands.",
+      "logo": {
+        "file": "Midlands-Health-Alliance-300x106-1.png",
+        "width": 158,
+        "height": 56,
+        "note": "Uploaded by Ben to the production Media Library (PNG, 300x106, 9.7 KB)."
+      },
+      "registrationUrl": "https://www.medilinkmidlands.com/event/midlands-health-alliance-industry-gateway-co-creation-event/",
+      "registrationText": "Find out more & register"
     }
   ],
   "webinars": [
